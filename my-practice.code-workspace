@@ -3,5 +3,8 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"python.linting.pylintPath": "pylint_django"
+	}
 }

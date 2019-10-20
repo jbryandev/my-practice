@@ -1,10 +1,10 @@
 <!-- templates/registration/login.html -->
 {% extends 'base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}My Practice - Login{% endblock %}
 
 {% block content %}
-<h2>Login</h2>
+<h2>My Practice</h2>
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
