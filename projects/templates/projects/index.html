@@ -7,11 +7,22 @@
 <p><a href="{% url 'home' %}">Home</a></p>
 <h2>Projects</h2>
 {% if project_list %}
-    <ul>
-    {% for project in project_list %}
-        <li><a href="{% url 'projects:detail' project.id %}">{{ project.project_name }}</a></li>
-    {% endfor %}
-    </ul>
+    <table>
+        <tr>
+            <th>Project Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Client Name</th>
+        </tr>
+        {% for project in project_list %}
+        <tr>
+            <td><a href="{% url 'projects:detail' project.id %}">{{ project.project_name }}</a></td>
+            <td>{{ project.start_date }}</td>
+            <td>{{ project.end_date }}</td>
+            <td>{{ project.client_name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% else %}
     <p>No projects have been added.</p>
 {% endif %}
