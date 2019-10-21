@@ -1,6 +1,14 @@
-<h1>{{ project.project_name }}</h1>
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}My Practice - Project Detail{% endblock %}
+
+{% block content %}
+<p><a href="{% url 'home' %}">Home</a> > <a href="{% url 'projects:index' %}">Projects</a></p>
+<h2>{{ project.project_name }}</h2>
 <ul>
     <li>Start Date: {{ project.start_date }}</li>
     <li>End Date: {{ project.end_date }}</li>
     <li>Location: {{ project.project_location }}</li>
 </ul>
+{% endblock %}
