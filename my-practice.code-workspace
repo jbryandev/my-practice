@@ -3,5 +3,9 @@
 		{
 			"path": "."
 		}
-	]
+	],
+	"settings": {
+		"python.pythonPath": "/Users/roland/Documents/Dev/Web/my-practice/env/bin/python",
+		"python.venvPath": "./env",
+	}
 }
