@@ -38,4 +38,6 @@ Thumbs.db
 
 # JEB Custom #
 ######################
-.code-workspace
+*.code-workspace
+/env/*
+/.vscode/*
