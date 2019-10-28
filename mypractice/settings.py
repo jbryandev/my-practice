@@ -85,11 +85,11 @@ WSGI_APPLICATION = 'mypractice.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mypractice',
-        'USER': 'jamesbryan',
-        'PASSWORD': 'Warhawk83',
+        'NAME': 'my-practice',
+        'USER': 'roland',
+        'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '',
+        'PORT': '5432',
     }
 }
 
