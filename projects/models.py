@@ -11,5 +11,9 @@ class Project(models.Model):
     project_manager = models.CharField(max_length=200)
     project_number = models.CharField(max_length=10)
     project_writeup = models.TextField()
+    
     def __str__(self):
         return self.project_name
+
+    def get_absolute_url(self):
+        return f"/projects/{self.id}/"
