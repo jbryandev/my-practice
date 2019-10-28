@@ -6,13 +6,14 @@
 {% block content %}
 <nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'projects:index' %}">Projects</a></nav>
 <h2>{{ project.project_name }}</h2>
-<h4>{{ project.client_name }}</h4>
 <h4>{{ project.project_location }}</h4>
 <ul>
+    <li>Client: {{ project.client_name }}</li>
     <li>Start Date: {{ project.start_date }}</li>
     <li>End Date: {{ project.end_date }}</li>
     <li>Project Manager: {{ project.project_manager }}</li>
     <li>Project Number: {{ project.project_number }}</li>
 </ul>
+<strong>Project Writeup:</strong>
 <p>{{ project.project_writeup }}</p>
 {% endblock %}
