@@ -1,19 +1,35 @@
 <!-- templates/index.html -->
 {% extends 'base.html' %}
+{% load project_extras %}
 
 {% block title %} - Project Detail{% endblock %}
 
 {% block content %}
+<!-- Page Navigation -->
 <nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'projects:index' %}">Projects</a></nav>
+
+<!-- Project Title & Location -->
 <h2>{{ project.project_name }}</h2>
 <h4>{{ project.project_location }}</h4>
+
+<!-- Project Details -->
 <ul>
-    <li>Client: {{ project.client_name }}</li>
-    <li>Start Date: {{ project.start_date }}</li>
-    <li>End Date: {{ project.end_date }}</li>
-    <li>Project Manager: {{ project.project_manager }}</li>
-    <li>Project Number: {{ project.project_number }}</li>
+    <li><strong>Project Number: </strong>{{ project.project_number }}</li>
+    <li><strong>Project Manager: </strong>{{ project.project_manager }}</li>
+    <li><strong>Client Name: </strong>{{ project.client_name }}</li>
+    {% if project.client_contact %}<li><strong>Client Contact: </strong>{{ project.client_contact }}</li>{% endif %}
+    {% if project.client_phone %}<li><strong>Client Phone: </strong>{{ project.client_phone }}</li>{% endif %}
+    {% if project.client_email %}<li><strong>Client Email: </strong>{{ project.client_email }}</li>{% endif %}
+    {% if project.des_start_date %}<li><strong>Design Start: </strong>{{ project.des_start_date }}</li>{% endif %}
+    {% if project.des_end_date %}<li><strong>Design End: </strong>{{ project.des_end_date }}</li>{% endif %}
+    {% if project.con_start_date %}<li><strong>Construction Start: </strong>{{ project.con_start_date }}</li>{% endif %}
+    {% if project.con_end_date %}<li><strong>Construction End: </strong>{{ project.con_end_date }}</li>{% endif %}
+    {% if project.con_cost %}<li><strong>Construction Cost: </strong>{{ project.con_cost }}</li>{% endif %}
 </ul>
-<strong>Project Writeup:</strong>
-<p>{{ project.project_writeup }}</p>
+
+<!-- Project Writeup Section -->
+{% if project.project_writeup %}
+    <strong>Project Writeup:</strong>
+    <p>{{ project.project_writeup }}</p>
+{% endif %}
 {% endblock %}
