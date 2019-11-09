@@ -1,0 +1,14 @@
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block title %} - Council Insights{% endblock %}
+
+{% block content %}
+<nav><a href="{% url 'home' %}">Home</a></nav>
+<h2>Council Insights</h2>
+{% if agency_list %}
+    
+{% else %}
+    <p>No agencies have been added to track yet.</p>
+{% endif %}
+{% endblock %}
