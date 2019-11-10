@@ -9,11 +9,14 @@
     <a href="{% url 'council:agency-detail' department.agency.id %}">{{ department.agency }}</a></nav>
 
 <!-- Department and agency name for page heading -->
-<h2>{{ department.department_name }} Agendas</h2>
+<h2>{{ department.department_name }}</h2>
 <h4>{{ department.agency.agency_name }}</h4>
+
+<p>Create meeting info field and add department meeting frequency and location to it.</p>
 
 <!-- List agendas -->
 {% if department.agendas.all.exists %}
+    <strong>Agendas:</strong>
     <ul>
         {% for agenda in department.agendas.all %}
             <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date }} Agenda</a></li>
