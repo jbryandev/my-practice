@@ -1,13 +1,17 @@
 <!-- templates/index.html -->
 {% extends 'base.html' %}
 
-{% block title %} - Council Insights{% endblock %}
+{% block title %} | Council Insights | Home{% endblock %}
 
 {% block content %}
 <nav><a href="{% url 'home' %}">Home</a></nav>
 <h2>Council Insights</h2>
 {% if agency_list %}
-    
+    <ul>
+        {% for agency in agency_list %}
+            <li><a href="{% url 'council:agency-detail' agency.id %}">{{ agency.agency_name }}</a></li>
+        {% endfor %}
+    </ul>
 {% else %}
     <p>No agencies have been added to track yet.</p>
 {% endif %}

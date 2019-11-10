@@ -1,0 +1,17 @@
+<!-- templates/department-detail.html -->
+{% extends 'base.html' %}
+
+{% block title %} | Council Insights | {{ department.agency.agency_name }} | {{ department.department_name }}{% endblock %}
+
+{% block content %}
+<!-- Page navigation -->
+<nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'council:index' %}">Council Insights</a> >
+    <a href="{% url 'council:agency-detail' department.agency.id %}">{{ department.agency }}</a></nav>
+
+<!-- Department and agency name for page heading -->
+<h2>{{ department.department_name }}</h2>
+<h4>{{ department.agency.agency_name }}</h4>
+
+
+
+{% endblock %}
