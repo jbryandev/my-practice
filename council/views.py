@@ -3,7 +3,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views import generic
 
-from .models import Agency, Department
+from .models import Agency, Department, Agenda
 
 # Create your views here.
 
@@ -19,3 +19,7 @@ class AgencyView(generic.DetailView):
 class DepartmentView(generic.DetailView):
     model = Department
     template_name = 'council/department_detail.html'
+
+class AgendaView(generic.DetailView):
+    model = Agenda
+    template_name = 'council/agenda_detail.html'

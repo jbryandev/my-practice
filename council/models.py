@@ -22,3 +22,11 @@ class Department(models.Model):
 
     def __str__(self):
         return self.department_name
+
+class Agenda(models.Model):
+    class Meta:
+        ordering = ('department', 'agenda_date')
+
+    agenda_date = models.DateField(null=False, blank=False)
+    date_added = models.DateTimeField(null=True, blank=True)
+    department = models.ForeignKey(Department, related_name='agendas', on_delete=models.CASCADE)

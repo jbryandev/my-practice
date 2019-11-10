@@ -9,9 +9,18 @@
     <a href="{% url 'council:agency-detail' department.agency.id %}">{{ department.agency }}</a></nav>
 
 <!-- Department and agency name for page heading -->
-<h2>{{ department.department_name }}</h2>
+<h2>{{ department.department_name }} Agendas</h2>
 <h4>{{ department.agency.agency_name }}</h4>
 
-
+<!-- List agendas -->
+{% if department.agendas.all.exists %}
+    <ul>
+        {% for agenda in department.agendas.all %}
+            <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date }} Agenda</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No agendas have been added for this department yet.</p>
+{% endif %}
 
 {% endblock %}

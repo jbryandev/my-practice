@@ -1,0 +1,18 @@
+<!-- templates/agenda-detail.html -->
+{% extends 'base.html' %}
+
+{% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | Agenda Detail{% endblock %}
+
+{% block content %}
+<!-- Page navigation -->
+<nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'council:index' %}">Council Insights</a> >
+    <a href="{% url 'council:agency-detail' agenda.department.agency.id %}">{{ agenda.department.agency }}</a> >
+    <a href="{% url 'council:department-detail' agenda.department.id %}">{{ agenda.department }}</a></nav>
+
+<!-- Department and agency name for page heading -->
+<h2>{{ agenda.agenda_date }} Agenda</h2>
+<h4>{{ agenda.department.agency.agency_name }} - {{ agenda.department.department_name }}</h4>
+
+
+
+{% endblock %}
