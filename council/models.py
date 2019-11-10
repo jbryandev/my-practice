@@ -18,6 +18,7 @@ class Department(models.Model):
 
     department_name = models.CharField(max_length=200)
     date_added = models.DateTimeField(null=True, blank=True)
+    meeting_info = models.TextField(null=True, blank=True)
     agency = models.ForeignKey(Agency, related_name='departments', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -29,4 +30,5 @@ class Agenda(models.Model):
 
     agenda_date = models.DateField(null=False, blank=False)
     date_added = models.DateTimeField(null=True, blank=True)
+    pdf_link = models.URLField(null=True, blank=True, max_length=500)
     department = models.ForeignKey(Department, related_name='agendas', on_delete=models.CASCADE)
