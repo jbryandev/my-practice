@@ -10,7 +10,7 @@
     <a href="{% url 'council:department-detail' agenda.department.id %}">{{ agenda.department }}</a></nav>
 
 <!-- Department and agency name for page heading -->
-<h2>{{ agenda.agenda_date|date:"m/d/y" }}</h2>
+<h2>{{ agenda.agenda_date|date:"m/d/y" }} Agenda</h2>
 <h4>{{ agenda.department.agency.agency_name }} - {{ agenda.department.department_name }}</h4>
 
 <p>{{ agenda.get_text|linebreaks }}</p>
