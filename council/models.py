@@ -1,4 +1,10 @@
 from django.db import models
+from datetime import datetime
+import requests
+import io
+from pdf2image import convert_from_bytes
+import pytesseract
+from PIL import Image
 
 # Create your models here.
 class Agency(models.Model):
@@ -32,3 +38,15 @@ class Agenda(models.Model):
     date_added = models.DateTimeField(null=True, blank=True)
     pdf_link = models.URLField(null=True, blank=True, max_length=500)
     department = models.ForeignKey(Department, related_name='agendas', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.agenda_date.strftime("%x")
+
+    def get_text(self):
+        text = ""
+        r = requests.get(self.pdf_link)
+        f = io.BytesIO(r.content)
+        images = convert_from_bytes(f.read())
+        for image in images:
+            text += str(((pytesseract.image_to_string(image)))) 
+        return text
