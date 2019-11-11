@@ -47,16 +47,21 @@ class Agenda(models.Model):
     def get_absolute_url(self):
         return reverse('council:agenda-detail', args=[str(self.id)])
 
+    def pdf2text(self, pdf_url):
+        # Takes a URL of a PDF and converts the PDF to text using tesseract
+        # Returns the converted text as a string
+        pdf_text = ""
+        r = requests.get(pdf_url)
+        f = io.BytesIO(r.content)
+        images = convert_from_bytes(f.read())
+        for image in images:
+            pdf_text += str(((pytesseract.image_to_string(image)))) 
+        return pdf_text
+
     def get_text(self):
         if not self.agenda_text:
-            print("Agenda has not been converted to text yet. Attempting to conver from PDF...")
-            text = ""
-            r = requests.get(self.pdf_link)
-            f = io.BytesIO(r.content)
-            images = convert_from_bytes(f.read())
-            for image in images:
-                text += str(((pytesseract.image_to_string(image)))) 
-            self.agenda_text = text
+            print("Agenda has not been converted to text yet. Attempting to convert from PDF...")
+            self.agenda_text = self.pdf2text(self.pdf_link)
             self.save(update_fields=['agenda_text'])
             return self.agenda_text
         else:

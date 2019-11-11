@@ -11,7 +11,7 @@
 <!-- Project Title & Location -->
 <h2>{{ project.project_name }}</h2>
 <h4>{{ project.project_location }}</h4>
-
+<hr></hr>
 <!-- Project Details -->
 <ul>
     <li><strong>Project Number: </strong>{{ project.project_number }}</li>
@@ -26,7 +26,7 @@
     {% if project.con_end_date %}<li><strong>Construction End: </strong>{{ project.con_end_date }}</li>{% endif %}
     {% if project.con_cost %}<li><strong>Construction Cost: </strong>{{ project.con_cost }}</li>{% endif %}
 </ul>
-
+<hr></hr>
 <!-- Project Writeup Section -->
 {% if project.project_writeup %}
     <strong>Project Writeup:</strong>
