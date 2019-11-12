@@ -19,6 +19,9 @@ class Agency(models.Model):
     def __str__(self):
         return self.agency_name
 
+    def get_absolute_url(self):
+        return reverse('council:agency-detail', args=[str(self.id)])
+
 class Department(models.Model):
     class Meta:
         ordering = ('agency', 'department_name')
@@ -30,6 +33,9 @@ class Department(models.Model):
 
     def __str__(self):
         return self.department_name
+
+    def get_absolute_url(self):
+        return reverse('council:department-detail', args=[str(self.id)])
 
 class Agenda(models.Model):
     class Meta:

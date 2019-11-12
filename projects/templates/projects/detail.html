@@ -30,6 +30,6 @@
 <!-- Project Writeup Section -->
 {% if project.project_writeup %}
     <strong>Project Writeup:</strong>
-    <p>{{ project.project_writeup }}</p>
+    <p>{{ project.project_writeup|linebreaks }}</p>
 {% endif %}
 {% endblock %}

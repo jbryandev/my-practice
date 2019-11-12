@@ -13,7 +13,9 @@
 <h2>{{ department.department_name }}</h2>
 <h4>{{ department.agency.agency_name }}</h4>
 <hr></hr>
-<p>{{ department.meeting_info }}</p>
+{% if department.meeting_info %}
+    <p>{{ department.meeting_info|linebreaks }}</p>
+{% endif %}
 
 <!-- List agendas -->
 <strong>Agendas:</strong>
