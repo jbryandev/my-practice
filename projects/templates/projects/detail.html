@@ -26,9 +26,9 @@
     {% if project.con_end_date %}<li><strong>Construction End: </strong>{{ project.con_end_date }}</li>{% endif %}
     {% if project.con_cost %}<li><strong>Construction Cost: </strong>{{ project.con_cost }}</li>{% endif %}
 </ul>
-<hr></hr>
 <!-- Project Writeup Section -->
 {% if project.project_writeup %}
+    <hr></hr>
     <strong>Project Writeup:</strong>
     <p>{{ project.project_writeup|linebreaks }}</p>
 {% endif %}
