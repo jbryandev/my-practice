@@ -1,11 +1,8 @@
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from datetime import datetime
-import requests
-import io
-from pdf2image import convert_from_bytes
-import pytesseract
-from PIL import Image
+from council.modules import pdf2text
 
 # Create your models here.
 class Agency(models.Model):
@@ -28,7 +25,8 @@ class Department(models.Model):
 
     department_name = models.CharField(max_length=200)
     date_added = models.DateTimeField(null=True, blank=True)
-    meeting_info = models.TextField(null=True, blank=True)
+    meeting_info = models.TextField(null=True, blank=True) # Put general meeting info here (location, time, frequency)
+    agendas_url = models.URLField(null=True, blank=True, max_length=500)
     agency = models.ForeignKey(Agency, related_name='departments', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -39,12 +37,14 @@ class Department(models.Model):
 
 class Agenda(models.Model):
     class Meta:
-        ordering = ('department', 'agenda_date')
+        ordering = ('department__agency_name', 'department', 'agenda_date')
 
-    agenda_date = models.DateField(null=False, blank=False)
-    date_added = models.DateTimeField(null=True, blank=True)
-    pdf_link = models.URLField(null=True, blank=True, max_length=500)
-    agenda_text = models.TextField(null=True, blank=True)
+    agenda_date = models.DateField(null=False, blank=False) # a.k.a. date of meeting
+    agenda_title = models.CharField(null=True, blank=True, max_length=200) # meeting title (Council Meeting, Trust, etc.)
+    agenda_url = models.URLField(null=True, blank=True, max_length=500) # URL path to agenda
+    agenda_text = models.TextField(null=True, blank=True) # Crawler will populate this field automatically
+    pdf_link = models.URLField(null=True, blank=True, max_length=500) # Separate link to PDF for instances where agenda url is html
+    date_added = models.DateTimeField(null=True, blank=True) # Date agenda was added to db
     department = models.ForeignKey(Department, related_name='agendas', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -53,21 +53,16 @@ class Agenda(models.Model):
     def get_absolute_url(self):
         return reverse('council:agenda-detail', args=[str(self.id)])
 
-    def pdf2text(self, pdf_url):
-        # Takes a URL of a PDF and converts the PDF to text using tesseract
-        # Returns the converted text as a string
-        pdf_text = ""
-        r = requests.get(pdf_url)
-        f = io.BytesIO(r.content)
-        images = convert_from_bytes(f.read())
-        for image in images:
-            pdf_text += str(((pytesseract.image_to_string(image)))) 
-        return pdf_text
+    def get_recent(self):
+        print("Get recent called!")
+        qs = Agenda.objects.all().order_by('-id')[:10]
+        print(qs)
+        return qs
 
     def get_text(self):
         if not self.agenda_text:
             print("Agenda has not been converted to text yet. Attempting to convert from PDF...")
-            self.agenda_text = self.pdf2text(self.pdf_link)
+            self.agenda_text = pdf2text(self.pdf_link)
             self.save(update_fields=['agenda_text'])
             return self.agenda_text
         else:

@@ -16,15 +16,20 @@ class DepartmentAdmin(admin.ModelAdmin):
     search_fields = ['department_name']
 
 class AgendaAdmin(admin.ModelAdmin):
-    list_display = ('agenda_date', 'department', 'date_added')
+    list_display = ('agenda_date', 'agenda_title', 'department', 'get_agency')
     list_filter = ['agenda_date']
+
+    def get_queryset(self, request):
+        # Joins department and agency to query
+        return super(AgendaAdmin,self).get_queryset(request).select_related('department__agency')
+
+    def get_agency(self, obj):
+        return obj.department.agency
+    get_agency.admin_order_field =  'department__agency_name' #Allows column order sorting
+    get_agency.short_description = 'Agency'  #Renames column heading
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "department":
-            #kwargs["queryset"] = Department.objects.all()
-            #for department in kwargs["queryset"]:
-            #    department.department_name += (" (" + str(Agency.objects.get(id=department.agency_id)) + ")")
-            #print(kwargs["queryset"])
             return DepartmentChoiceField(queryset=Department.objects.all())
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
