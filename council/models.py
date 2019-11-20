@@ -76,7 +76,12 @@ class Agenda(models.Model):
 class Crawler(models.Model):
     crawler_name = models.CharField(max_length=200)
     date_added = models.DateTimeField(null=True, blank=True)
-    department = models.ForeignKey(Department, related_name='crawlers', on_delete=models.CASCADE)
+    department = models.ManyToManyField(Department, related_name='crawlers')
 
     def __str__(self):
-        return self.department_name
+        return self.crawler_name
+
+
+    def fetch_agendas(self):
+        # Linking function between Crawler models and Crawler modules
+        pass

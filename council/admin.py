@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.forms import ModelChoiceField
+from django.forms import ModelChoiceField, ModelMultipleChoiceField
 
 from .models import Agency, Department, Agenda, Crawler
 
@@ -33,16 +33,27 @@ class AgendaAdmin(admin.ModelAdmin):
             return DepartmentChoiceField(queryset=Department.objects.all())
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+class CrawlerAdmin(admin.ModelAdmin):
+    list_display = ('crawler_name', 'date_added')
+    list_filter = ['date_added']
+    search_fields = ['crawler_name']
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "department":
+            return DepartmentMultipleChoiceField(queryset=Department.objects.all())
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 class DepartmentChoiceField(ModelChoiceField):
     # Override default ModelChoiceField to add Agency to Department label
     # This prevents confusion when multiple Agencies have same Department names
      def label_from_instance(self, obj):
          return "{} ({})".format(obj, obj.agency)
 
-class CrawlerAdmin(admin.ModelAdmin):
-    list_display = ('crawler_name', 'department', 'date_added')
-    list_filter = ['date_added']
-    search_fields = ['crawler_name']
+class DepartmentMultipleChoiceField(ModelMultipleChoiceField):
+    # Override default ModelMultipleChoiceField to add Agency to Department label
+    # This prevents confusion when multiple Agencies have same Department names
+     def label_from_instance(self, obj):
+         return "{} ({})".format(obj, obj.agency)
 
 admin.site.register(Agency, AgencyAdmin)
 admin.site.register(Department, DepartmentAdmin)
