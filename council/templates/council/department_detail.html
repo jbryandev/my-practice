@@ -17,7 +17,7 @@
     <p>{{ department.meeting_info|linebreaks }}</p>
 {% endif %}
 {% if department.agendas_url %}
-    <p><a href="{{ department.agendas_url }}">Link to Agendas</a></p>
+    <p><a href="{{ department.agendas_url }}">Link to Agendas</a> | <a href="{% url 'council:fetch-agendas' department.id %}">Fetch Agendas</a></p>
 {% endif %}
 
 <!-- List agendas -->
@@ -25,7 +25,6 @@
 {% if department.agendas.all.exists %}
     <ul>
         {% for agenda in department.agendas.all %}
-            {{ agenda.get_recent }}
             <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date|date:"m/d/y" }}</a></li>
         {% endfor %}
     </ul>

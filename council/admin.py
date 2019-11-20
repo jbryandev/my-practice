@@ -39,6 +39,11 @@ class DepartmentChoiceField(ModelChoiceField):
      def label_from_instance(self, obj):
          return "{} ({})".format(obj, obj.agency)
 
+class CrawlerAdmin(admin.ModelAdmin):
+    list_display = ('crawler_name', 'department', 'date_added')
+    list_filter = ['date_added']
+    search_fields = ['crawler_name']
+
 admin.site.register(Agency, AgencyAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Agenda, AgendaAdmin)

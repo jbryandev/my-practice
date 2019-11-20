@@ -35,6 +35,10 @@ class Department(models.Model):
     def get_absolute_url(self):
         return reverse('council:department-detail', args=[str(self.id)])
 
+    def fetch_agendas(self):
+        print("Fetch agendas called at model level")
+        
+
 class Agenda(models.Model):
     class Meta:
         ordering = ('department__agency_name', 'department', 'agenda_date')
@@ -68,3 +72,10 @@ class Agenda(models.Model):
         else:
             print("Agenda has already been converted to text from PDF. Displaying resulting text.")
             return self.agenda_text
+
+class Crawler(models.Model):
+    crawler_name = models.CharField(max_length=200)
+    department = models.ForeignKey(Department, related_name='crawlers', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.department_name

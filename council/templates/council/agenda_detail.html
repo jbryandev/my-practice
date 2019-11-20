@@ -18,6 +18,9 @@
 {% endif %}
 
 <hr></hr>
-<p>{{ agenda.get_text|linebreaks }}</p>
-
+{% if agenda.agenda_text %}
+    <p>{{ agenda.get_text|linebreaks }}</p>
+{% else %}
+    <p>Agenda text has not yet been generated.</p>
+{% endif %}
 {% endblock %}

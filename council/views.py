@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, HttpResponseRedirect
+from django.urls import reverse
 from django.views import generic
 
 from .models import Agency, Department, Agenda
@@ -23,3 +24,10 @@ class DepartmentView(generic.DetailView):
 class AgendaView(generic.DetailView):
     model = Agenda
     template_name = 'council/agenda_detail.html'
+
+def FetchAgendas(request, pk):
+    # Call fetch_agendas() function based on provided Department id
+    print("Fetch agendas called at view level")
+    department = Department.objects.get(id=pk)
+    department.fetch_agendas()
+    return HttpResponseRedirect(reverse('council:department-detail', args=[str(pk)]))
