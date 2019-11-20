@@ -75,6 +75,7 @@ class Agenda(models.Model):
 
 class Crawler(models.Model):
     crawler_name = models.CharField(max_length=200)
+    date_added = models.DateTimeField(null=True, blank=True)
     department = models.ForeignKey(Department, related_name='crawlers', on_delete=models.CASCADE)
 
     def __str__(self):

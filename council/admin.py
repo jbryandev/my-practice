@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelChoiceField
 
-from .models import Agency, Department, Agenda
+from .models import Agency, Department, Agenda, Crawler
 
 # Register your models here.
 
@@ -47,3 +47,4 @@ class CrawlerAdmin(admin.ModelAdmin):
 admin.site.register(Agency, AgencyAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Agenda, AgendaAdmin)
+admin.site.register(Crawler, CrawlerAdmin)
