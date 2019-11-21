@@ -36,14 +36,6 @@ class Department(models.Model):
     def get_absolute_url(self):
         return reverse('council:department-detail', args=[str(self.id)])
 
-    def fetch_agendas(self):
-        try:
-            crawler = Crawler.objects.get(department=self)
-            crawler.fetch_agendas(self)
-            return True
-        except:
-            return False
-
 class Agenda(models.Model):
     class Meta:
         ordering = ('department__agency_name', 'department', 'agenda_date')
@@ -85,13 +77,3 @@ class Crawler(models.Model):
 
     def __str__(self):
         return self.crawler_name
-
-    def fetch_agendas(self, calling_department):
-        # Linking function between Crawler models and Crawler modules
-        
-        if self.crawler_name == "Edmond":
-            module = importlib.import_module("council.crawlers.edmond")
-            agendas_url = calling_department.agendas_url
-            agenda_name = calling_department.department_name
-            new_agendas = module.fetch_agendas(agendas_url, agenda_name)
-            module.save_agendas(new_agendas, calling_department)

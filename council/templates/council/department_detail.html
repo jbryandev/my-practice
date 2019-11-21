@@ -21,7 +21,7 @@
 {% endif %}
 
 {% if messages %}
-<!-- Error messages -->
+<!-- Messages -->
 <ul class="messages">
     {% for message in messages %}
     <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
@@ -34,7 +34,7 @@
 {% if department.agendas.all.exists %}
     <ul>
         {% for agenda in department.agendas.all %}
-            <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date|date:"m/d/y" }}</a></li>
+            <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }}</a></li>
         {% endfor %}
     </ul>
 {% else %}

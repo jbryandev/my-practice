@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.views import generic
 from django.contrib import messages
 
-from .models import Agency, Department, Agenda
+from .models import Agency, Department, Agenda, Crawler
 
 # Create your views here.
 
@@ -26,12 +26,37 @@ class AgendaView(generic.DetailView):
     model = Agenda
     template_name = 'council/agenda_detail.html'
 
-def FetchAgendas(request, pk):
-    # Call fetch_agendas() function based on provided Department id
+def fetch_agendas(request, pk):
+
     department = Department.objects.get(id=pk)
-    if not department.fetch_agendas():
-        print("Warning: No crawler assigned to this department.")
-        messages.warning(request, 'Warning: There isn\'t a crawler assigned to this department yet.')
-    else:
-        department.fetch_agendas()
+    crawler = None
+    try:
+        crawler = Crawler.objects.get(department=department)
+    except:
+        messages.error(request, 'Error: There isn\'t a crawler assigned to this department yet.')
+
+    if crawler:
+        try:
+            exec_crawler(request, crawler, department)
+        except:
+            #messages.error(request, 'Unable to locate corresponding crawler module')
+            pass
+
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(pk)]))
+
+def exec_crawler(request, crawler, calling_department):
+    # Linking function between Crawler models and Crawler modules
+    
+    if crawler.crawler_name == "Edmond":
+        module = importlib.import_module("council.crawlers.edmond")
+        agendas_url = calling_department.agendas_url
+        agenda_name = calling_department.department_name
+        new_agendas = module.fetch_agendas(agendas_url, agenda_name)
+        module.save_agendas(new_agendas, calling_department)
+        return True
+    
+    elif crawler.crawler_name == "El Reno":
+        module = importlib.import_module("council.crawlers.el_reno")
+        agendas_url = calling_department.agendas_url
+        new_agendas = module.fetch_agendas(agendas_url)
+        module.save_agendas(new_agendas, calling_department)

@@ -4,63 +4,48 @@ a scanned PDF, therefore, OCR must be used to convert the PDF to text.
 
 """
 # Import libraries
-import requests
+import dateparser
 import re
+import requests
 from datetime import datetime
 from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup, Tag, NavigableString
 from bs4 import SoupStrainer
-from ..models import Agenda, Department
+from council.models import Agenda, Department
+from council.modules import pdf2text
 
-def retrieve_current_agendas(agendas_url):
-    # This function takes the URL where the agendas are located and returns
-    # a BeautifulSoup object with the parsed HTML
+def retrieve_agendas(agendas_url):
+    # This function takes the URL where the agendas are located and returns a
+    # BeautifulSoup ResultSet object with the parsed HTML of all agendas listed
     
     response = requests.get(agendas_url)
     
-    # Don't need entire HTML page, just parse only div tags containing the agendas
-    agenda_div = SoupStrainer(id="javelin_moduleId-2189")
-
+    # Parse only the div tag that contains all of the agendas
+    agenda_div = SoupStrainer("div", class_="grid-9")
     soup = BeautifulSoup(response.text, "html.parser", parse_only=agenda_div)
+    all_agendas = soup.find_all("li") # Retrieves all agendas on the page
 
-    current_agendas = soup.find_all("li")
+    # Trim out only the current year agendas
+    agenda_list = []
+    current_year = str(datetime.now().year)
+    for agenda in all_agendas:
+        # Regex that searches for current year in the URL path
+        if re.search(current_year, agenda.a["href"]):
+            agenda_list.append(agenda)
+    return agenda_list
 
-    return current_agendas
+def get_most_recent_agendas(agenda_list):
+    # This function takes a BeautifulSoup ResultSet and finds the 5 most recent agendas
+    # It returns a list of BeautifulSoup Tag objects containing the most recent agendas
 
-def get_latest_agenda(current_agendas):
+    tag_list = []
+    i = 1
 
-    for agenda in current_agendas:
-
-        print(agenda)
-    # Need to finish this
-
-
-
-"""
-def find_specific_agendas(parsed_html, agenda_name):
-    # This function takes a BeautifulSoup object containing parsed HTML and
-    # the agenda name to search for, and returns a list of matching agendas.
-    # The resulting list will contain key value pairs of the agenda date as
-    # a datetime object and the agenda URL as a string.
+    while i <= 5:
+        tag_list.append(agenda_list[len(agenda_list) - i])
+        i += 1
     
-    agenda_set = []
-    
-    for tag in parsed_html.find_all("td", string=re.compile("%s" % agenda_name)):
-        
-        # Select first child in tag, which contains all the agenda info we need
-        agenda_info = tag.parent.select("td a")[0]
-        
-        # Convert agenda date string into datetime object
-        agenda_date = datetime.strptime(str(agenda_info.string), "%B %d, %Y")
-
-        # Clean up agenda url path
-        agenda_url = "http://agenda.edmondok.com:8085/" + agenda_info['href']
-
-        agenda = {"agenda_date": agenda_date, "agenda_url": agenda_url}
-
-        agenda_set.append(agenda)
-    
-    return agenda_set
+    return tag_list
 
 def agenda_exists(agenda_url):
     # This function takes an agenda URL and makes sure that it is not
@@ -74,63 +59,78 @@ def agenda_exists(agenda_url):
 
         return False
 
-def get_agenda(agenda_url):
-    # This function takes an agenda URL and extracts the agenda contents.
-                   
-    # Connect to the agenda URL and parse agenda HTML through BeautifulSoup
-    response = requests.get(agenda_url)
-    agenda_table = SoupStrainer("table") # parse only TABLE tag
-    soup = BeautifulSoup(response.text, "html.parser")
-    
-    # Find PDF link (if available) and save to variable
-    download_link = soup.find("a", title="Download PDF Packet")
-    agenda_pdf = ""
-    if download_link:
-        agenda_pdf = "http://agenda.edmondok.com:8085" + download_link['href']
-    
-    # Parse out agenda HTML and save as agenda text
-    
-    agenda_text_header = ""
-    
-    for string in soup.find("thead").contents[7].stripped_strings:
-        
-        agenda_text_header += string + "\n"
-    
-    agenda_text_body = ""
-    
-    for string in soup.find("tbody").stripped_strings:
-        
-        agenda_text_body += string + "\n"
-    
-    agenda_text = agenda_text_header + "\n" + agenda_text_body
+def convert_agenda(agenda_url):
+    # This function takes an agenda URL which corresponds to the PDF agenda and
+    # converts it to text using PIL and Tesseract
 
-    agenda = {"agenda_url": agenda_url, "pdf_link": agenda_pdf, "agenda_text": agenda_text}
+    agenda_text = pdf2text(agenda_url) # function defined in modules.py
 
-    return agenda
+    return agenda_text
 
-def fetch_agendas(agendas_url, agenda_name):
+def parse_agenda_info(agenda):
+    # This function takes a BeautifulSoup Tag Object and parses out the
+    # relevant agenda information, then returns a list of key-value pairs
+    
+    # Store agenda URL
+    agenda_url = agenda.a["href"]
+    
+    # Get agenda title as a string
+    agenda_string = agenda.a.string
+
+    # Test if agenda title contains letters
+    match = re.search('[a-zA-Z]', agenda_string)
+    agenda_date = ""
+    agenda_name = ""
+    
+    if match:
+        # Agenda title contains letters (date & title)
+        # Separate date from title
+        match = re.search('\d{1,2}-\d{1,2}-\d{1,2}', agenda_string)
+        agenda_date = agenda_string[match.start():match.end()]
+        agenda_name = agenda_string.replace(agenda_string[match.start():match.end()], "").strip()
+   
+    else:
+        # Agenda title does not contain letters (date only)
+        agenda_date = agenda_string
+
+    # Convert agenda date to datetime object
+    agenda_date = dateparser.parse(agenda_date)
+   
+    # Get agenda text (convert from PDF to text)
+    agenda_text = convert_agenda(agenda_url)
+
+    # Store all the agenda info as key value pairs
+    agenda_info = {
+        "agenda_date": agenda_date,
+        "agenda_title": agenda_name,
+        "agenda_url": agenda_url,
+        "agenda_text": agenda_text,
+        "pdf_link": agenda_url, # in this case it's the same as the agenda URL
+        }
+
+    return agenda_info
+
+def fetch_agendas(agendas_url):
     # This function combines all of the methods above to retrieve a list of new agendas
     # ready to be added to the database for a particular department
     # It returns a list of Agenda objects (minus the department and date added fields)
+    agenda_list = retrieve_agendas(agendas_url) # BeautifulSoup ResultSet
 
-    agenda_html = retrieve_current_agendas(agendas_url)
-
-    specific_agendas = find_specific_agendas(agenda_html, agenda_name)
-
+    recent_agendas = get_most_recent_agendas(agenda_list) # BeautifulSoup Tag Objects in List
+    
     new_agendas = []
 
-    for agenda in specific_agendas:
+    for agenda in recent_agendas:
 
-        agenda_url = agenda.get("agenda_url")
+        agenda_url = agenda.a["href"] # URL as string
         
         if not agenda_exists(agenda_url):
-
-            parsed_agenda = get_agenda(agenda_url)
-            parsed_agenda.update({"agenda_date": agenda.get("agenda_date"), "agenda_name": agenda_name})
+            
+            parsed_agenda = parse_agenda_info(agenda)
             
             new_agenda = Agenda(
                 agenda_date=parsed_agenda.get("agenda_date"),
-                agenda_title=parsed_agenda.get("agenda_name"),
+                agenda_title=parsed_agenda.get("agenda_title"),
                 agenda_url=parsed_agenda.get("agenda_url"),
                 agenda_text=parsed_agenda.get("agenda_text"),
                 pdf_link=parsed_agenda.get("pdf_link"),
@@ -148,4 +148,3 @@ def save_agendas(agenda_list, department):
         agenda.department = department
         agenda.date_added = datetime.now(tz=get_current_timezone())
         agenda.save()
-"""
