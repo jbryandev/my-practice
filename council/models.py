@@ -37,9 +37,12 @@ class Department(models.Model):
         return reverse('council:department-detail', args=[str(self.id)])
 
     def fetch_agendas(self):
-        crawler = Crawler.objects.get(department=self)
-        crawler.fetch_agendas(self)
-        
+        try:
+            crawler = Crawler.objects.get(department=self)
+            crawler.fetch_agendas(self)
+            return True
+        except:
+            return False
 
 class Agenda(models.Model):
     class Meta:

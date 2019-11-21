@@ -20,6 +20,15 @@
     <p><a href="{{ department.agendas_url }}">Link to Agendas</a> | <a href="{% url 'council:fetch-agendas' department.id %}">Fetch Agendas</a></p>
 {% endif %}
 
+{% if messages %}
+<!-- Error messages -->
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <!-- List agendas -->
 <strong>Agendas:</strong>
 {% if department.agendas.all.exists %}

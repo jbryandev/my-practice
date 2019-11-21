@@ -3,6 +3,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
+from django.contrib import messages
 
 from .models import Agency, Department, Agenda
 
@@ -28,5 +29,9 @@ class AgendaView(generic.DetailView):
 def FetchAgendas(request, pk):
     # Call fetch_agendas() function based on provided Department id
     department = Department.objects.get(id=pk)
-    department.fetch_agendas()
+    if not department.fetch_agendas():
+        print("Warning: No crawler assigned to this department.")
+        messages.warning(request, 'Warning: There isn\'t a crawler assigned to this department yet.')
+    else:
+        department.fetch_agendas()
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(pk)]))
