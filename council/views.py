@@ -27,7 +27,6 @@ class AgendaView(generic.DetailView):
 
 def FetchAgendas(request, pk):
     # Call fetch_agendas() function based on provided Department id
-    print("Fetch agendas called at view level")
     department = Department.objects.get(id=pk)
     department.fetch_agendas()
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(pk)]))

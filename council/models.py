@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import datetime
 from council.modules import pdf2text
+import importlib
 
 # Create your models here.
 class Agency(models.Model):
@@ -36,7 +37,8 @@ class Department(models.Model):
         return reverse('council:department-detail', args=[str(self.id)])
 
     def fetch_agendas(self):
-        print("Fetch agendas called at model level")
+        crawler = Crawler.objects.get(department=self)
+        crawler.fetch_agendas(self)
         
 
 class Agenda(models.Model):
@@ -81,7 +83,12 @@ class Crawler(models.Model):
     def __str__(self):
         return self.crawler_name
 
-
-    def fetch_agendas(self):
+    def fetch_agendas(self, calling_department):
         # Linking function between Crawler models and Crawler modules
-        pass
+        
+        if self.crawler_name == "Edmond":
+            module = importlib.import_module("council.crawlers.edmond")
+            agendas_url = calling_department.agendas_url
+            agenda_name = calling_department.department_name
+            new_agendas = module.fetch_agendas(agendas_url, agenda_name)
+            module.save_agendas(new_agendas, calling_department)

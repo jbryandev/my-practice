@@ -41,7 +41,7 @@ class CrawlerAdmin(admin.ModelAdmin):
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "department":
             return DepartmentMultipleChoiceField(queryset=Department.objects.all())
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 class DepartmentChoiceField(ModelChoiceField):
     # Override default ModelChoiceField to add Agency to Department label

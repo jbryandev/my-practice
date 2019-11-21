@@ -73,8 +73,11 @@ def get_agenda(agenda_url):
     agenda_table = SoupStrainer("table") # parse only TABLE tag
     soup = BeautifulSoup(response.text, "html.parser")
     
-    # Find PDF link and save to variable
-    agenda_pdf = "http://agenda.edmondok.com:8085" + soup.find("a", title="Download PDF Packet")['href']
+    # Find PDF link (if available) and save to variable
+    download_link = soup.find("a", title="Download PDF Packet")
+    agenda_pdf = ""
+    if download_link:
+        agenda_pdf = "http://agenda.edmondok.com:8085" + download_link['href']
     
     # Parse out agenda HTML and save as agenda text
     
@@ -98,8 +101,8 @@ def get_agenda(agenda_url):
 
 def fetch_agendas(agendas_url, agenda_name):
     # This function combines all of the methods above to retrieve a list of new agendas
-    # ready to be added to the database for a particular Department
-    # It returns a list of Agenda objects (minus the Department)
+    # ready to be added to the database for a particular department
+    # It returns a list of Agenda objects (minus the department and date added fields)
 
     agenda_html = retrieve_current_agendas(agendas_url)
 
@@ -121,10 +124,18 @@ def fetch_agendas(agendas_url, agenda_name):
                 agenda_title=parsed_agenda.get("agenda_name"),
                 agenda_url=parsed_agenda.get("agenda_url"),
                 agenda_text=parsed_agenda.get("agenda_text"),
-                pdf_link=parsed_agenda.get("agenda_pdf"),
-                date_added=datetime.now(tz=get_current_timezone()),
+                pdf_link=parsed_agenda.get("pdf_link"),
             )
 
             new_agendas.append(new_agenda)
 
     return new_agendas
+
+def save_agendas(agenda_list, department):
+    # This function takes a list containing Agenda objects (minus their departments) and
+    # the corresponding department that the agendas should belong to and saves them to the db
+
+    for agenda in agenda_list:
+        agenda.department = department
+        agenda.date_added = datetime.now(tz=get_current_timezone())
+        agenda.save()
