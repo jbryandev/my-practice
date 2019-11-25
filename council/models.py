@@ -2,8 +2,6 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from datetime import datetime
-from council.modules import pdf2text
-import importlib
 
 # Create your models here.
 class Agency(models.Model):
@@ -53,22 +51,6 @@ class Agenda(models.Model):
 
     def get_absolute_url(self):
         return reverse('council:agenda-detail', args=[str(self.id)])
-
-    def get_recent(self):
-        print("Get recent called!")
-        qs = Agenda.objects.all().order_by('-id')[:10]
-        print(qs)
-        return qs
-
-    def get_text(self):
-        if not self.agenda_text:
-            print("Agenda has not been converted to text yet. Attempting to convert from PDF...")
-            self.agenda_text = pdf2text(self.pdf_link)
-            self.save(update_fields=['agenda_text'])
-            return self.agenda_text
-        else:
-            print("Agenda has already been converted to text from PDF. Displaying resulting text.")
-            return self.agenda_text
 
 class Crawler(models.Model):
     crawler_name = models.CharField(max_length=200)

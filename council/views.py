@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, render, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from django.contrib import messages
+import importlib
 
 from .models import Agency, Department, Agenda, Crawler
 
@@ -11,6 +12,7 @@ from .models import Agency, Department, Agenda, Crawler
 
 class IndexView(generic.ListView):
     template_name = 'council/index.html'
+    
     def get_queryset(self):
         return Agency.objects.order_by('agency_name')
 
@@ -28,23 +30,13 @@ class AgendaView(generic.DetailView):
 
 def fetch_agendas(request, pk):
 
-    department = Department.objects.get(id=pk)
-    crawler = None
-    try:
-        crawler = Crawler.objects.get(department=department)
-    except:
-        messages.error(request, 'Error: There isn\'t a crawler assigned to this department yet.')
-
-    if crawler:
-        try:
-            exec_crawler(request, crawler, department)
-        except:
-            #messages.error(request, 'Unable to locate corresponding crawler module')
-            pass
-
+    department = get_object_or_404(Department, pk=pk)
+    crawler = get_object_or_404(Crawler, department=department)
+    exec_crawler(crawler, department)
+    
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(pk)]))
 
-def exec_crawler(request, crawler, calling_department):
+def exec_crawler(crawler, calling_department):
     # Linking function between Crawler models and Crawler modules
     
     if crawler.crawler_name == "Edmond":
@@ -53,7 +45,6 @@ def exec_crawler(request, crawler, calling_department):
         agenda_name = calling_department.department_name
         new_agendas = module.fetch_agendas(agendas_url, agenda_name)
         module.save_agendas(new_agendas, calling_department)
-        return True
     
     elif crawler.crawler_name == "El Reno":
         module = importlib.import_module("council.crawlers.el_reno")
