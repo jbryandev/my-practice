@@ -14,7 +14,6 @@ import re
 from datetime import datetime
 from bs4 import BeautifulSoup, Tag, NavigableString
 from bs4 import SoupStrainer
-from ..models import Agenda, Department
 
 def retrieve_current_agendas(agendas_url):
     # This function takes the URL where the agendas are located and returns
