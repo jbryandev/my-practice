@@ -12,7 +12,6 @@ the same.
 import requests
 import re
 from datetime import datetime
-from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup, Tag, NavigableString
 from bs4 import SoupStrainer
 from ..models import Agenda, Department
@@ -130,12 +129,3 @@ def fetch_agendas(agendas_url, agenda_name):
             new_agendas.append(new_agenda)
 
     return new_agendas
-
-def save_agendas(agenda_list, department):
-    # This function takes a list containing Agenda objects (minus their departments) and
-    # the corresponding department that the agendas should belong to and saves them to the db
-
-    for agenda in agenda_list:
-        agenda.department = department
-        agenda.date_added = datetime.now(tz=get_current_timezone())
-        agenda.save()

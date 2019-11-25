@@ -8,10 +8,8 @@ import dateparser
 import re
 import requests
 from datetime import datetime
-from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup, Tag, NavigableString
 from bs4 import SoupStrainer
-from council.models import Agenda, Department
 from council.modules import pdf2text
 
 def retrieve_agendas(agendas_url):
@@ -46,18 +44,6 @@ def get_most_recent_agendas(agenda_list):
         i += 1
     
     return tag_list
-
-def agenda_exists(agenda_url):
-    # This function takes an agenda URL and makes sure that it is not
-    # already associated with an agenda in the database
-     
-    if Agenda.objects.filter(agenda_url=agenda_url).exists():
-        
-        return True
-    
-    else:
-
-        return False
 
 def convert_agenda(agenda_url):
     # This function takes an agenda URL which corresponds to the PDF agenda and
@@ -109,42 +95,3 @@ def parse_agenda_info(agenda):
         }
 
     return agenda_info
-
-def fetch_agendas(agendas_url):
-    # This function combines all of the methods above to retrieve a list of new agendas
-    # ready to be added to the database for a particular department
-    # It returns a list of Agenda objects (minus the department and date added fields)
-    agenda_list = retrieve_agendas(agendas_url) # BeautifulSoup ResultSet
-
-    recent_agendas = get_most_recent_agendas(agenda_list) # BeautifulSoup Tag Objects in List
-    
-    new_agendas = []
-
-    for agenda in recent_agendas:
-
-        agenda_url = agenda.a["href"] # URL as string
-        
-        if not agenda_exists(agenda_url):
-            
-            parsed_agenda = parse_agenda_info(agenda)
-            
-            new_agenda = Agenda(
-                agenda_date=parsed_agenda.get("agenda_date"),
-                agenda_title=parsed_agenda.get("agenda_title"),
-                agenda_url=parsed_agenda.get("agenda_url"),
-                agenda_text=parsed_agenda.get("agenda_text"),
-                pdf_link=parsed_agenda.get("pdf_link"),
-            )
-
-            new_agendas.append(new_agenda)
-
-    return new_agendas
-
-def save_agendas(agenda_list, department):
-    # This function takes a list containing Agenda objects (minus their departments) and
-    # the corresponding department that the agendas should belong to and saves them to the db
-
-    for agenda in agenda_list:
-        agenda.department = department
-        agenda.date_added = datetime.now(tz=get_current_timezone())
-        agenda.save()
