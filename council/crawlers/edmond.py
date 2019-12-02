@@ -96,35 +96,3 @@ def get_agenda(agenda_url):
     agenda = {"agenda_url": agenda_url, "pdf_link": agenda_pdf, "agenda_text": agenda_text}
 
     return agenda
-
-def fetch_agendas(agendas_url, agenda_name):
-    # This function combines all of the methods above to retrieve a list of new agendas
-    # ready to be added to the database for a particular department
-    # It returns a list of Agenda objects (minus the department and date added fields)
-
-    agenda_html = retrieve_current_agendas(agendas_url)
-
-    specific_agendas = find_specific_agendas(agenda_html, agenda_name)
-
-    new_agendas = []
-
-    for agenda in specific_agendas:
-
-        agenda_url = agenda.get("agenda_url")
-        
-        if not agenda_exists(agenda_url):
-
-            parsed_agenda = get_agenda(agenda_url)
-            parsed_agenda.update({"agenda_date": agenda.get("agenda_date"), "agenda_name": agenda_name})
-            
-            new_agenda = Agenda(
-                agenda_date=parsed_agenda.get("agenda_date"),
-                agenda_title=parsed_agenda.get("agenda_name"),
-                agenda_url=parsed_agenda.get("agenda_url"),
-                agenda_text=parsed_agenda.get("agenda_text"),
-                pdf_link=parsed_agenda.get("pdf_link"),
-            )
-
-            new_agendas.append(new_agenda)
-
-    return new_agendas
