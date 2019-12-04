@@ -29,7 +29,6 @@ def retrieve_agendas(agendas_url):
     headers.update({
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15'
         })
-    agendas_url = "https://agenda.okc.gov/sirepub/meet.aspx" #temporary for testing
     response = requests.get(agendas_url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
     agendas_list = soup.find_all("tr", "public_meeting", limit=20) # There are hundreds of agendas on this page, hence the limit
@@ -41,7 +40,6 @@ def match_agendas(agendas_list, department_name):
     # department name to match them against, and returns a set of only the agendas that match
     # the corresponding department
     matched_agendas = []
-    department_name = "City Council" # temporary for testing
     for agenda in agendas_list:
         agenda_string = str(agenda.td.text).strip()
         agenda_string_split = agenda_string.split("\r\n") # Split string on linespaces

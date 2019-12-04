@@ -51,18 +51,6 @@ def find_specific_agendas(parsed_html, agenda_name):
     
     return agenda_set
 
-def agenda_exists(agenda_url):
-    # This function takes an agenda URL and makes sure that it is not
-    # already associated with an agenda in the database
-     
-    if Agenda.objects.filter(agenda_url=agenda_url).exists():
-        
-        return True
-    
-    else:
-
-        return False
-
 def get_agenda(agenda_url):
     # This function takes an agenda URL and extracts the agenda contents.
                    
@@ -81,13 +69,13 @@ def get_agenda(agenda_url):
     
     agenda_text_header = ""
     
-    for string in soup.find("thead").contents[7].stripped_strings:
+    for string in soup.find("thead").contents[7].strings:
         
         agenda_text_header += string + "\n"
     
     agenda_text_body = ""
     
-    for string in soup.find("tbody").stripped_strings:
+    for string in soup.find("tbody").strings:
         
         agenda_text_body += string + "\n"
     
