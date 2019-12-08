@@ -8,7 +8,6 @@ Since all agendas are posted to the online system, this crawler can be
 used to handle any City department, as the extraction method will be
 the same.
 """
-# Import libraries
 from datetime import datetime
 import re
 import requests

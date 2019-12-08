@@ -3,13 +3,10 @@ Crawler for the City of El Reno. El Reno agendas are only available as
 a scanned PDF, therefore, OCR must be used to convert the PDF to text.
 
 """
-# Import libraries
 from datetime import datetime
 import re
 import dateparser
-
 import requests
-
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from council.modules import pdf2text

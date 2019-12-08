@@ -9,7 +9,7 @@ from ..crawlers import edmond
 from ..crawlers import el_reno
 from ..crawlers import okc
 from ..crawlers import moore
-
+from ..crawlers import lawton
 from ..models import Agenda
 
 def exec_crawler(crawler, calling_department):
@@ -26,6 +26,9 @@ def exec_crawler(crawler, calling_department):
 
     elif crawler.crawler_name == "Moore":
         moore_crawler(calling_department)
+
+    elif crawler.crawler_name == "Lawton":
+        lawton_crawler(calling_department)
 
 def agenda_exists(agenda_url):
     """
@@ -131,3 +134,29 @@ def moore_crawler(calling_department):
                 print("Agenda already exists in db. Aborting.")
         else:
             print("No agenda has been posted yet. Try again later.")
+
+def lawton_crawler(calling_department):
+    """ Lawton Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = lawton.retrieve_agendas(agendas_url)
+    print("Attempting to find any matching agendas")
+    matched_agendas = lawton.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        print("Agenda match found. Attemping to get agenda URL...")
+        agenda_url = lawton.get_agenda_url(agenda.get("agenda_detail_url"))
+        print("URL found. Checking to see if it already exists in db...")
+        if not agenda_exists(agenda_url):
+            agenda_text = lawton.get_agenda_text(agenda_url)
+            print("Agenda does not yet exist. Preparing to add to db...")
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text=agenda_text,
+                pdf_link=agenda_url,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+        else:
+            print("Agenda already exists in db. Aborting.")
