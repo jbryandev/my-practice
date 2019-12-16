@@ -10,6 +10,7 @@ from ..crawlers import el_reno
 from ..crawlers import okc
 from ..crawlers import moore
 from ..crawlers import lawton
+from ..crawlers import midwest_city
 from ..models import Agenda
 
 def exec_crawler(crawler, calling_department):
@@ -29,6 +30,9 @@ def exec_crawler(crawler, calling_department):
 
     elif crawler.crawler_name == "Lawton":
         lawton_crawler(calling_department)
+
+    elif crawler.crawler_name == "Midwest City":
+        midwest_city_crawler(calling_department)
 
 def agenda_exists(agenda_url):
     """
@@ -148,6 +152,32 @@ def lawton_crawler(calling_department):
         if not agenda_exists(agenda_url):
             agenda_text = lawton.get_agenda_text(agenda_url)
             print("Agenda does not yet exist. Preparing to add to db...")
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text=agenda_text,
+                pdf_link=agenda_url,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+        else:
+            print("Agenda already exists in db. Aborting.")
+
+def midwest_city_crawler(calling_department):
+    """ Midwest City Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = midwest_city.retrieve_agendas(agendas_url)
+    print("Attempting to find any matching agendas")
+    matched_agendas = midwest_city.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        print("Agenda match found. Checking URL against database...")
+        agenda_url = agenda.get("agenda_url")
+        if not agenda_exists(agenda_url):
+            print("Agenda does not yet exist. Converting PDF to text...")
+            agenda_text = midwest_city.get_agenda_text(agenda_url)
+            print("Conversion complete. Preparing to add to db...")
             new_agenda = Agenda(
                 agenda_date=agenda.get("agenda_date"),
                 agenda_title=agenda.get("agenda_title"),

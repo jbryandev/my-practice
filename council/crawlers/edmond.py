@@ -22,6 +22,7 @@ def retrieve_current_agendas(agendas_url):
     response = requests.get(agendas_url)
     # Don't need entire HTML page, just parse only TABLE tag containing the agendas
     agendas_table = SoupStrainer(class_="nowrap smallText")
+
     return BeautifulSoup(response.text, "html.parser", parse_only=agendas_table)
 
 def find_specific_agendas(parsed_html, agenda_name):
@@ -50,8 +51,7 @@ def get_agenda(agenda_url):
     """ This function takes an agenda URL and extracts the agenda contents. """
     # Connect to the agenda URL and parse agenda HTML through BeautifulSoup
     response = requests.get(agenda_url)
-    agenda_table = SoupStrainer("table") # parse only TABLE tag
-    soup = BeautifulSoup(response.text, "html.parser", agenda_table)
+    soup = BeautifulSoup(response.text, "html.parser")
 
     # Find PDF link (if available) and save to variable
     download_link = soup.find("a", title="Download PDF Packet")
