@@ -11,7 +11,6 @@ the same.
 # Import libraries
 import re
 import dateutil.parser as dparser
-import requests
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from selenium import webdriver
@@ -23,18 +22,23 @@ def retrieve_agendas(agendas_url):
     This function takes the URL where the agendas are located and returns a BeautifulSoup ResultSet
     limited to the most recent 20 agendas found (of all departments)
     """
-    # OKC agenda website protects against robots, so headers need to be spoofed
-    headers = requests.utils.default_headers()
-    headers.update({
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) \
-            AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15'
-        })
-    response = requests.get(agendas_url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
-    # There are hundreds of agendas on this page, hence the limit
-    agendas_list = soup.find_all("tr", "public_meeting", limit=20)
+    print("Retrieving agendas...")
+    browser = open_browser(agendas_url)
+    timeout = 20 # Set timeout length for WebDriverWait below
+    try:
+        WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
+        soup = BeautifulSoup(browser.page_source, 'html.parser')
+        agendas_list = soup.find_all("tr", "public_meeting", limit=20)
+        browser.quit()
+    except TimeoutException:
+        print("Timed out waiting for page to load")
+        browser.quit()
 
-    return agendas_list
+    if not agendas_list:
+        print("Error: unable to retrieve any agendas.")
+    else:
+        print(str(len(agendas_list)) + " agendas retrieved.")
+        return agendas_list
 
 def match_agendas(agendas_list, department_name):
     """
@@ -42,11 +46,12 @@ def match_agendas(agendas_list, department_name):
     department name to match them against, and returns a set of only the agendas that match
     the corresponding department.
     """
+    print("Looking for matching agendas...")
     matched_agendas = []
     for agenda in agendas_list:
         agenda_string = str(agenda.td.text).strip()
         # Split string on linespaces
-        agenda_string_split = agenda_string.split("\r\n")
+        agenda_string_split = agenda_string.split("\n")
         # Delete "View" text from string
         agenda_string_split.pop(0)
         # Delete "Agenda" leaving only date, time, name
@@ -67,7 +72,10 @@ def match_agendas(agendas_list, department_name):
                 "agenda_url": agenda_path,
                 "agenda_view_link": agenda_view_link
             }
+            print("Agenda match found: " + str(agenda_date) + " " + agenda_name)
             matched_agendas.append(agenda_obj)
+        else:
+            print("No agenda matches found.")
 
     return matched_agendas
 
@@ -77,7 +85,7 @@ def get_agenda_text(agenda_url):
     to open the page and BeautifulSoup to scrape the contents.
     It returns a BeautifulSoup object of the agenda content.
     """
-
+    print("Attempting to get agenda content...")
     agenda_text = ""
     browser = open_browser(agenda_url)
     timeout = 20 # Set timeout length for WebDriverWait below
@@ -98,17 +106,17 @@ def get_agenda_pdf(agenda_view_link):
     This functions takes a URL of the agenda view summary page
     and extracts the URL for the agenda PDF document.
     """
-
-    # OKC agenda website protects against robots, so headers need to be spoofed
-    headers = requests.utils.default_headers()
-    headers.update({
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) \
-            AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15'
-        })
-    response = requests.get(agenda_view_link, headers=headers)
-    meeting_docs_table = SoupStrainer("table", id="tblMeetingDocs")
-    soup = BeautifulSoup(response.text, "html.parser", parse_only=meeting_docs_table)
-    pdf_link = "https://agenda.okc.gov/sirepub/" + soup.a["href"]
+    browser = open_browser(agenda_view_link)
+    timeout = 20 # Set timeout length for WebDriverWait below
+    try:
+        WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
+        meeting_docs_table = SoupStrainer("table", id="tblMeetingDocs")
+        soup = BeautifulSoup(browser.page_source, "html.parser", parse_only=meeting_docs_table)
+        pdf_link = "https://agenda.okc.gov/sirepub/" + soup.a["href"]
+        browser.quit()
+    except TimeoutException:
+        print("Timed out waiting for page to load")
+        browser.quit()
 
     return pdf_link
 
