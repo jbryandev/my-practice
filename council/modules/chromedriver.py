@@ -17,13 +17,14 @@ def set_chrome_options():
     chrome_options.add_argument("--no-sandbox")
     # This prevents unpacked extensions error dialog box from popping up
     chrome_options.add_experimental_option("useAutomationExtension", False)
-    print(type(chrome_options))
+
     return chrome_options
 
 def get_chrome_driver(chrome_options):
     """
     This function takes chrome options and establishes the driver.
     """
+    print("get_chrome_driver called")
     driver = webdriver.Chrome(
         executable_path=os.environ.get("CHROMEDRIVER_PATH"),
         chrome_options=chrome_options
