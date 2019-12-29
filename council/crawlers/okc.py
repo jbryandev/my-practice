@@ -13,9 +13,9 @@ import re
 import dateutil.parser as dparser
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
+from ..modules import chromedriver
 
 def retrieve_agendas(agendas_url):
     """
@@ -125,16 +125,9 @@ def open_browser(page_url):
     This function uses Selenium to open a Chrome browser instance and
     navigate to the given URL.
     """
-
-    options = webdriver.ChromeOptions()
-    # Prevents unpacked extensions error dialog box from popping up
-    options.add_experimental_option("useAutomationExtension", False)
-    exec_path = r"C:\\Users\\james.bryan\AppData\\Local\\Programs\\Python\\" \
-        "Python37-32\\Lib\\site-packages\\selenium\\webdriver\\chrome\\chromedriver"
-    browser = webdriver.Chrome(
-        executable_path=exec_path,
-        chrome_options=options
-        )
+    print("open_browser called")
+    chrome_options = chromedriver.set_chrome_options()
+    browser = chromedriver.get_chrome_driver(chrome_options)
     browser.get(page_url)
 
     return browser
