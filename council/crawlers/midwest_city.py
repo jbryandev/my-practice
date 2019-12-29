@@ -10,7 +10,7 @@ import requests
 import dateutil.parser as dparser
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
-from council.modules import pdf2text
+from ..modules import pdf2text
 
 def retrieve_agendas(agendas_url):
     """
@@ -55,6 +55,6 @@ def get_agenda_text(agenda_url):
     This function takes an agenda URL and returns
     the PDF content converted to text.
     """
-    agenda_text = pdf2text(agenda_url)
+    agenda_text = pdf2text.convert_pdf(agenda_url)
 
     return agenda_text

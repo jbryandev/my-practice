@@ -9,7 +9,7 @@ import dateparser
 import requests
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
-from council.modules import pdf2text
+from ..modules import pdf2text
 
 def retrieve_agendas(agendas_url):
     """
@@ -49,7 +49,7 @@ def convert_agenda(agenda_url):
     This function takes an agenda URL which corresponds to the PDF agenda and
     converts it to text using PIL and Tesseract
     """
-    agenda_text = pdf2text(agenda_url) # function defined in modules.py
+    agenda_text = pdf2text.convert_pdf(agenda_url)
 
     return agenda_text
 

@@ -9,7 +9,7 @@ import requests
 from pdf2image import convert_from_bytes
 import pytesseract
 
-def pdf2text(pdf_url):
+def convert_pdf(pdf_url):
     """
     Module function.
     """
