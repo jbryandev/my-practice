@@ -11,8 +11,7 @@ the same.
 # Import libraries
 import re
 import dateutil.parser as dparser
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from ..modules import chromedriver
@@ -23,7 +22,7 @@ def retrieve_agendas(agendas_url):
     limited to the most recent 20 agendas found (of all departments)
     """
     print("Retrieving agendas...")
-    browser = open_browser(agendas_url)
+    browser = chromedriver.open_browser(agendas_url)
     timeout = 20 # Set timeout length for WebDriverWait below
     try:
         WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
@@ -87,7 +86,7 @@ def get_agenda_text(agenda_url):
     """
     print("Attempting to get agenda content...")
     agenda_text = ""
-    browser = open_browser(agenda_url)
+    browser = chromedriver.open_browser(agenda_url)
     timeout = 20 # Set timeout length for WebDriverWait below
     try:
         WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
@@ -106,7 +105,7 @@ def get_agenda_pdf(agenda_view_link):
     This functions takes a URL of the agenda view summary page
     and extracts the URL for the agenda PDF document.
     """
-    browser = open_browser(agenda_view_link)
+    browser = chromedriver.open_browser(agenda_view_link)
     timeout = 20 # Set timeout length for WebDriverWait below
     try:
         WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
@@ -119,15 +118,3 @@ def get_agenda_pdf(agenda_view_link):
         browser.quit()
 
     return pdf_link
-
-def open_browser(page_url):
-    """
-    This function uses Selenium to open a Chrome browser instance and
-    navigate to the given URL.
-    """
-    print("open_browser called")
-    chrome_options = chromedriver.set_chrome_options()
-    browser = chromedriver.get_chrome_driver(chrome_options)
-    browser.get(page_url)
-
-    return browser

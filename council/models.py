@@ -67,6 +67,9 @@ class Crawler(models.Model):
     A crawler is the vehicle for scraping agenda data from the web.
     A crawler can belong to multiple departments.
     """
+    class Meta:
+        ordering = ('crawler_name', 'date_added')
+
     crawler_name = models.CharField(max_length=200)
     date_added = models.DateTimeField(null=True, blank=True)
     department = models.ManyToManyField(Department, related_name='crawlers')

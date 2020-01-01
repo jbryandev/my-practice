@@ -11,8 +11,7 @@ the same.
 from datetime import datetime
 import re
 import requests
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 
 def retrieve_current_agendas(agendas_url):
     """

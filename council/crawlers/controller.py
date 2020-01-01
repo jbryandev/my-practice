@@ -7,10 +7,12 @@ from datetime import datetime
 from django.utils.timezone import get_current_timezone
 from ..crawlers import edmond
 from ..crawlers import el_reno
-from ..crawlers import okc
-from ..crawlers import moore
 from ..crawlers import lawton
 from ..crawlers import midwest_city
+from ..crawlers import moore
+from ..crawlers import norman
+from ..crawlers import okc
+from ..crawlers import tulsa
 from ..models import Agenda
 
 def exec_crawler(crawler, calling_department):
@@ -22,17 +24,23 @@ def exec_crawler(crawler, calling_department):
     elif crawler.crawler_name == "El Reno":
         el_reno_crawler(calling_department)
 
-    elif crawler.crawler_name == "Oklahoma City":
-        okc_crawler(calling_department)
-
-    elif crawler.crawler_name == "Moore":
-        moore_crawler(calling_department)
-
     elif crawler.crawler_name == "Lawton":
         lawton_crawler(calling_department)
 
     elif crawler.crawler_name == "Midwest City":
         midwest_city_crawler(calling_department)
+
+    elif crawler.crawler_name == "Moore":
+        moore_crawler(calling_department)
+
+    elif crawler.crawler_name == "Oklahoma City":
+        okc_crawler(calling_department)
+
+    elif crawler.crawler_name == "Norman":
+        norman_crawler(calling_department)
+    
+    elif crawler.crawler_name == "Tulsa":
+        tulsa_crawler(calling_department)
 
 def agenda_exists(agenda_url):
     """
@@ -88,57 +96,6 @@ def el_reno_crawler(calling_department):
             )
             new_agenda.save()
 
-def okc_crawler(calling_department):
-    """ OKC Crawler function. """
-    agendas_url = calling_department.agendas_url
-    agendas_list = okc.retrieve_agendas(agendas_url)
-    matched_agendas = okc.match_agendas(agendas_list, calling_department.department_name)
-    for agenda in matched_agendas:
-        agenda_url = agenda.get("agenda_url")
-        agenda_view_link = agenda.get("agenda_view_link")
-        if not agenda_exists(agenda_url):
-            agenda_text = okc.get_agenda_text(agenda_url)
-            pdf_link = okc.get_agenda_pdf(agenda_view_link)
-            new_agenda = Agenda(
-                agenda_date=agenda.get("agenda_date"),
-                agenda_title=agenda.get("agenda_title"),
-                agenda_url=agenda_url,
-                agenda_text=agenda_text,
-                pdf_link=pdf_link,
-                date_added=datetime.now(tz=get_current_timezone()),
-                department=calling_department
-            )
-            new_agenda.save()
-
-def moore_crawler(calling_department):
-    """ Moore Crawler function. """
-    agendas_url = calling_department.agendas_url
-    agendas_list = moore.retrieve_agendas(agendas_url)
-    print("Attempting to find any matching agendas")
-    matched_agendas = moore.match_agendas(agendas_list, calling_department.department_name)
-    for agenda in matched_agendas:
-        print("Agenda match found. Attemping to get agenda URL...")
-        agenda_url = moore.get_agenda_url(agenda.get("agenda_detail"))
-        if agenda_url:
-            print("Agenda found. Check to see if it already exists in db...")
-            if not agenda_exists(agenda_url):
-                agenda_text = moore.get_agenda_text(agenda_url)
-                print("Agenda does not yet exist. Preparing to add to db...")
-                new_agenda = Agenda(
-                    agenda_date=agenda.get("agenda_date"),
-                    agenda_title=agenda.get("agenda_title"),
-                    agenda_url=agenda_url,
-                    agenda_text=agenda_text,
-                    pdf_link=agenda_url,
-                    date_added=datetime.now(tz=get_current_timezone()),
-                    department=calling_department
-                )
-                new_agenda.save()
-            else:
-                print("Agenda already exists in db. Aborting.")
-        else:
-            print("No agenda has been posted yet. Try again later.")
-
 def lawton_crawler(calling_department):
     """ Lawton Crawler function. """
     agendas_url = calling_department.agendas_url
@@ -190,3 +147,100 @@ def midwest_city_crawler(calling_department):
             new_agenda.save()
         else:
             print("Agenda already exists in db. Aborting.")
+
+def moore_crawler(calling_department):
+    """ Moore Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = moore.retrieve_agendas(agendas_url)
+    print("Attempting to find any matching agendas")
+    matched_agendas = moore.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        print("Agenda match found. Attemping to get agenda URL...")
+        agenda_url = moore.get_agenda_url(agenda.get("agenda_detail"))
+        if agenda_url:
+            print("Agenda found. Check to see if it already exists in db...")
+            if not agenda_exists(agenda_url):
+                agenda_text = moore.get_agenda_text(agenda_url)
+                print("Agenda does not yet exist. Preparing to add to db...")
+                new_agenda = Agenda(
+                    agenda_date=agenda.get("agenda_date"),
+                    agenda_title=agenda.get("agenda_title"),
+                    agenda_url=agenda_url,
+                    agenda_text=agenda_text,
+                    pdf_link=agenda_url,
+                    date_added=datetime.now(tz=get_current_timezone()),
+                    department=calling_department
+                )
+                new_agenda.save()
+            else:
+                print("Agenda already exists in db. Aborting.")
+        else:
+            print("No agenda has been posted yet. Try again later.")
+
+def norman_crawler(calling_department):
+    """ Norman Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = norman.retrieve_agendas(agendas_url)
+    print("Attempting to find any matching agendas")
+    matched_agendas = norman.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        print("Agenda found. Check to see if it already exists in db...")
+        agenda_url = agenda.get("agenda_url")
+        if not agenda_exists(agenda_url):
+            print("Agenda does not yet exist. Converting PDF to text...")
+            agenda_text = norman.get_agenda_text(agenda_url)
+            print("Agenda does not yet exist. Preparing to add to db...")
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text=agenda_text,
+                pdf_link=agenda_url,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+        else:
+            print("Agenda already exists in db. Aborting.")
+
+def okc_crawler(calling_department):
+    """ OKC Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = okc.retrieve_agendas(agendas_url)
+    matched_agendas = okc.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        agenda_url = agenda.get("agenda_url")
+        agenda_view_link = agenda.get("agenda_view_link")
+        if not agenda_exists(agenda_url):
+            agenda_text = okc.get_agenda_text(agenda_url)
+            pdf_link = okc.get_agenda_pdf(agenda_view_link)
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text=agenda_text,
+                pdf_link=pdf_link,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+
+def tulsa_crawler(calling_department):
+    """ Tulsa Crawler function. """
+    agendas_url = calling_department.agendas_url
+    agendas_list = tulsa.retrieve_agendas(agendas_url)
+    matched_agendas = tulsa.match_agendas(agendas_list, calling_department.department_name)
+    for agenda in matched_agendas:
+        agenda_url = agenda.get("agenda_url")
+        if not agenda_exists(agenda_url):
+            agenda_text = tulsa.get_agenda_content(agenda_url)
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text=agenda_text,
+                pdf_link="",
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()

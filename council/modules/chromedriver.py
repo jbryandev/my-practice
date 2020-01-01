@@ -31,3 +31,15 @@ def get_chrome_driver(chrome_options):
     )
 
     return driver
+
+def open_browser(page_url):
+    """
+    This function uses Selenium to open a Chrome browser instance and
+    navigate to the given URL.
+    """
+    print("open_browser called")
+    chrome_options = set_chrome_options()
+    browser = get_chrome_driver(chrome_options)
+    browser.get(page_url)
+
+    return browser
