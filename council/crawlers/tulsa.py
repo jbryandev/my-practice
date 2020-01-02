@@ -26,6 +26,7 @@ def retrieve_agendas(agendas_url):
     print("Opening Chrome browser instance...")
     browser = chromedriver.open_browser(agendas_url)
     timeout = 20 # Set timeout length for WebDriverWait below
+    agendas = ""
     try:
         WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("iframe"))
         browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))

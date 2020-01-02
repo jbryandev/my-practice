@@ -7,6 +7,7 @@ from datetime import datetime
 import re
 import dateparser
 import requests
+from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from ..modules import pdf2text
@@ -38,7 +39,7 @@ def get_most_recent_agendas(agenda_list):
     """
     tag_list = []
     i = 1
-    while i <= 5:
+    while i <= 5 and i <= len(agenda_list):
         tag_list.append(agenda_list[len(agenda_list) - i])
         i += 1
 
@@ -71,8 +72,13 @@ def parse_agenda_info(agenda):
         # Agenda title contains letters (date & title)
         # Separate date from title
         match = re.search(r'\d{1,2}-\d{1,2}-\d{1,2}', agenda_string)
-        agenda_date = agenda_string[match.start():match.end()]
-        agenda_name = agenda_string.replace(agenda_string[match.start():match.end()], "").strip()
+        if match:
+            agenda_date = agenda_string[match.start():match.end()]
+            agenda_name = agenda_string.replace(
+                agenda_string[match.start():match.end()], "").strip()
+        else:
+            agenda_date = datetime.now(tz=get_current_timezone()).strftime("%m/%d/%Y")
+            agenda_name = agenda_string
     else:
         # Agenda title does not contain letters (date only)
         agenda_date = agenda_string

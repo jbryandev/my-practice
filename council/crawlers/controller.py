@@ -38,7 +38,7 @@ def exec_crawler(crawler, calling_department):
 
     elif crawler.crawler_name == "Norman":
         norman_crawler(calling_department)
-    
+
     elif crawler.crawler_name == "Tulsa":
         tulsa_crawler(calling_department)
 
