@@ -3,8 +3,6 @@ This defines the models used in the council app
 """
 from django.db import models
 from django.urls import reverse
-#from django.utils import timezone
-#from datetime import datetime
 
 # Create your models here.
 class Agency(models.Model):
@@ -76,3 +74,21 @@ class Crawler(models.Model):
 
     def __str__(self):
         return self.crawler_name
+
+class Highlight(models.Model):
+    """
+    A highlight marks relevant portions of an agenda.
+    It is marked by a start and end string position within the agenda.
+    A highlight belongs to only one agenda, but an agenda can have many highlights.
+    """
+
+    date_added = models.DateTimeField(null=True, blank=True)
+    hl_start = models.PositiveIntegerField("highlight start")
+    hl_end = models.PositiveIntegerField("highlight end")
+    hl_category = models.CharField("category", max_length=200, null=True, blank=True)
+    agenda = models.ForeignKey(Agenda, related_name='highlights', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "Highlight " + str(self.pk)
+
+    __str__.admin_order_field = "pk"
