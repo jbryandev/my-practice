@@ -75,20 +75,48 @@ class Crawler(models.Model):
     def __str__(self):
         return self.crawler_name
 
+class Category(models.Model):
+    """ A model to define categories for keyphrases and highlights. """
+    class Meta:
+        verbose_name_plural = "categories"
+
+    category_name = models.CharField(max_length=200, null=False, blank=False, default="Default")
+    date_added = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.category_name
+
 class Highlight(models.Model):
     """
     A highlight marks relevant portions of an agenda.
     It is marked by a start and end string position within the agenda.
     A highlight belongs to only one agenda, but an agenda can have many highlights.
     """
-
     date_added = models.DateTimeField(null=True, blank=True)
     hl_start = models.PositiveIntegerField("highlight start")
     hl_end = models.PositiveIntegerField("highlight end")
-    hl_category = models.CharField("category", max_length=200, null=True, blank=True)
     agenda = models.ForeignKey(Agenda, related_name='highlights', on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        Category, related_name='highlights', on_delete=models.CASCADE, default=1)
 
     def __str__(self):
         return "Highlight " + str(self.pk)
 
     __str__.admin_order_field = "pk"
+
+class Keyphrase(models.Model):
+    """
+    A keyphrase is a specific term or phrase to be searched for within an agenda.
+    Multiple keyphrases may be searched for within a single agenda.
+    Keyphrases may span multiple agencies and departments, or may be
+    specific to a particular agency or department.
+    Keyphrase matches form the basis for generating highlights.
+    """
+    kp_text = models.CharField(
+        "keyphrase", max_length=200, null=False, blank=False, default="Default")
+    date_added = models.DateTimeField(null=True, blank=True)
+    category = models.ForeignKey(
+        Category, related_name='keyphrases', on_delete=models.CASCADE, default=1)
+
+    def __str__(self):
+        return self.kp_text

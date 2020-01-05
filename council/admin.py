@@ -3,7 +3,8 @@ Defines the various admin models for this application.
 """
 from django.contrib import admin
 from django.forms import ModelChoiceField, ModelMultipleChoiceField
-from .models import Agency, Department, Agenda, Crawler, Highlight
+from .models import Agency, Department, Agenda, Crawler, Category, \
+    Highlight, Keyphrase
 
 # Register your models here.
 
@@ -51,11 +52,15 @@ class CrawlerAdmin(admin.ModelAdmin):
             return DepartmentMultipleChoiceField(queryset=Department.objects.all())
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+class CategoryAdmin(admin.ModelAdmin):
+    """ Admin model for Categories """
+    list_display = ('category_name', 'date_added')
+
 class HighlightAdmin(admin.ModelAdmin):
     """ Admin model for Highlight class """
     ordering = ['pk']
-    list_display = ('__str__', 'hl_category', 'get_agency', 'get_department')
-    list_filter = ['hl_category']
+    list_display = ('__str__', 'category', 'get_agency', 'get_department')
+    list_filter = ['category']
 
     def get_queryset(self, request):
         # Joins department and agency to query
@@ -79,6 +84,12 @@ class HighlightAdmin(admin.ModelAdmin):
     get_department.short_description = 'Department'  #Renames column heading
     get_agency.admin_order_field = 'department__agency_name' #Allows column order sorting
     get_agency.short_description = 'Agency'  #Renames column heading
+
+class KeyphraseAdmin(admin.ModelAdmin):
+    """ Admin model for Keyphrase class """
+    list_display = ('__str__', 'category', 'date_added')
+    list_filter = ['category']
+    search_fields = ['kp_text']
 
 class DepartmentChoiceField(ModelChoiceField):
     """
@@ -108,4 +119,6 @@ admin.site.register(Agency, AgencyAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Agenda, AgendaAdmin)
 admin.site.register(Crawler, CrawlerAdmin)
+admin.site.register(Category, CategoryAdmin)
 admin.site.register(Highlight, HighlightAdmin)
+admin.site.register(Keyphrase, KeyphraseAdmin)
