@@ -43,7 +43,7 @@ class Department(models.Model):
 class Agenda(models.Model):
     """ An agenda belongs to a specific department. """
     class Meta:
-        ordering = ('department__agency_name', 'department', 'agenda_date')
+        ordering = ('department__agency_name', 'department', '-agenda_date')
 
     agenda_date = models.DateField(null=False, blank=False)
     agenda_title = models.CharField(null=True, blank=True, max_length=200)
@@ -59,6 +59,13 @@ class Agenda(models.Model):
     def get_absolute_url(self):
         """ Return absolute URL of agenda. """
         return reverse('council:agenda-detail', args=[str(self.id)])
+
+    def agenda_exists(self, agenda_url):
+        """
+        This function takes an agenda URL and makes sure that it is not
+        already associated with an agenda in the database.
+        """
+        return bool(self.objects.filter(agenda_url=agenda_url).exists())
 
 class Crawler(models.Model):
     """
