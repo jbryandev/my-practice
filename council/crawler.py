@@ -107,13 +107,12 @@ def lawton_crawler(calling_department):
         agenda_url = lawton.get_agenda_url(agenda.get("agenda_detail_url"))
         print("URL found. Checking to see if it already exists in db...")
         if not agenda_exists(agenda_url):
-            agenda_text = lawton.get_agenda_text(agenda_url)
             print("Agenda does not yet exist. Preparing to add to db...")
             new_agenda = Agenda(
                 agenda_date=agenda.get("agenda_date"),
                 agenda_title=agenda.get("agenda_title"),
                 agenda_url=agenda_url,
-                agenda_text=agenda_text,
+                agenda_text="", # will be generated upon user request
                 pdf_link=agenda_url,
                 date_added=datetime.now(tz=get_current_timezone()),
                 department=calling_department
@@ -133,13 +132,12 @@ def midwest_city_crawler(calling_department):
         agenda_url = agenda.get("agenda_url")
         if not agenda_exists(agenda_url):
             print("Agenda does not yet exist. Converting PDF to text...")
-            agenda_text = midwest_city.get_agenda_text(agenda_url)
             print("Conversion complete. Preparing to add to db...")
             new_agenda = Agenda(
                 agenda_date=agenda.get("agenda_date"),
                 agenda_title=agenda.get("agenda_title"),
                 agenda_url=agenda_url,
-                agenda_text=agenda_text,
+                agenda_text="", # will be generated upon user request
                 pdf_link=agenda_url,
                 date_added=datetime.now(tz=get_current_timezone()),
                 department=calling_department
@@ -160,13 +158,12 @@ def moore_crawler(calling_department):
         if agenda_url:
             print("Agenda found. Check to see if it already exists in db...")
             if not agenda_exists(agenda_url):
-                agenda_text = moore.get_agenda_text(agenda_url)
                 print("Agenda does not yet exist. Preparing to add to db...")
                 new_agenda = Agenda(
                     agenda_date=agenda.get("agenda_date"),
                     agenda_title=agenda.get("agenda_title"),
                     agenda_url=agenda_url,
-                    agenda_text=agenda_text,
+                    agenda_text="", # will be generate upon user request
                     pdf_link=agenda_url,
                     date_added=datetime.now(tz=get_current_timezone()),
                     department=calling_department
@@ -187,14 +184,12 @@ def norman_crawler(calling_department):
         print("Agenda found. Check to see if it already exists in db...")
         agenda_url = agenda.get("agenda_url")
         if not agenda_exists(agenda_url):
-            print("Agenda does not yet exist. Converting PDF to text...")
-            agenda_text = norman.get_agenda_text(agenda_url)
             print("Agenda does not yet exist. Preparing to add to db...")
             new_agenda = Agenda(
                 agenda_date=agenda.get("agenda_date"),
                 agenda_title=agenda.get("agenda_title"),
                 agenda_url=agenda_url,
-                agenda_text=agenda_text,
+                agenda_text="", # will be generated upon user request
                 pdf_link=agenda_url,
                 date_added=datetime.now(tz=get_current_timezone()),
                 department=calling_department

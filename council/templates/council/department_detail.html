@@ -13,11 +13,13 @@
 <h2>{{ department.department_name }}</h2>
 <h4>{{ department.agency.agency_name }}</h4>
 <hr></hr>
+
 {% if department.meeting_info %}
     <p>{{ department.meeting_info|linebreaks }}</p>
 {% endif %}
+
 {% if department.agendas_url %}
-    <p><a href="{{ department.agendas_url }}">Link to Agendas</a> | <a href="{% url 'council:fetch-agendas' department.id %}">Fetch Agendas</a></p>
+    <p><a href="{{ department.agendas_url }}">City Website</a> | <a href="{% url 'council:fetch-agendas' department.id %}">Fetch New Agendas</a></p>
 {% endif %}
 
 {% if messages %}
@@ -30,7 +32,7 @@
 {% endif %}
 
 <!-- List agendas -->
-<strong>Agendas:</strong>
+<strong>Stored Agendas:</strong>
 {% if department.agendas.all.exists %}
     <ul>
         {% for agenda in department.agendas.all %}

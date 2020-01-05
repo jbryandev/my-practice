@@ -10,7 +10,6 @@ import requests
 from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
-from ..modules import pdf2text
 
 def retrieve_agendas(agendas_url):
     """
@@ -45,15 +44,6 @@ def get_most_recent_agendas(agenda_list):
 
     return tag_list
 
-def convert_agenda(agenda_url):
-    """
-    This function takes an agenda URL which corresponds to the PDF agenda and
-    converts it to text using PIL and Tesseract
-    """
-    agenda_text = pdf2text.convert_pdf(agenda_url)
-
-    return agenda_text
-
 def parse_agenda_info(agenda):
     """
     This function takes a BeautifulSoup Tag Object and parses out the
@@ -85,15 +75,13 @@ def parse_agenda_info(agenda):
 
     # Convert agenda date to datetime object
     agenda_date = dateparser.parse(agenda_date)
-    # Get agenda text (convert from PDF to text)
-    agenda_text = convert_agenda(agenda_url)
 
     # Store all the agenda info as key value pairs
     agenda_info = {
         "agenda_date": agenda_date,
         "agenda_title": agenda_name,
         "agenda_url": agenda_url,
-        "agenda_text": agenda_text,
+        "agenda_text": "", # will be generated upon user request
         "pdf_link": agenda_url, # in this case it's the same as the agenda URL
         }
 

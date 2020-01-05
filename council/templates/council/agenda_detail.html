@@ -18,9 +18,11 @@
 {% endif %}
 
 <hr></hr>
+
 {% if agenda.agenda_text %}
     <p>{{ agenda.agenda_text|linebreaks }}</p>
 {% else %}
-    <p>Agenda text has not yet been generated.</p>
+    <p>Agenda text has not yet been generated. Click <a href="{% url 'council:convert-pdf' agenda.id %}">here</a>
+        to convert the agenda PDF into text. Note: this may take a few minutes</p>
 {% endif %}
 {% endblock %}

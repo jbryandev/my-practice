@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from .crawler import exec_crawler
+from .modules import pdf2text
 from .models import Agency, Department, Agenda, Crawler
 
 # Create your views here.
@@ -36,3 +37,11 @@ def fetch_agendas(request, dept_id):
     exec_crawler(crawler, department)
 
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(dept_id)]))
+
+def convert_pdf(request, agenda_id):
+    """ Function to convert a PDF agenda into text """
+    agenda = Agenda.objects.get(pk=agenda_id)
+    agenda.agenda_text = pdf2text.convert_pdf(agenda.agenda_url)
+    agenda.save()
+
+    return HttpResponseRedirect(reverse('council:agenda-detail', args=[str(agenda_id)]))
