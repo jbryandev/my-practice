@@ -10,4 +10,5 @@ urlpatterns = [
     path('agenda/<int:pk>/', views.AgendaView.as_view(), name='agenda-detail'),
     path('department/<int:dept_id>/fetch', views.fetch_agendas, name='fetch-agendas'),
     path('agenda/<int:agenda_id>/convert', views.convert_pdf, name='convert-pdf'),
+    #url(r'^(?P<task_id>[\w-]+)/$', views.get_progress, name='task_status'),
 ]

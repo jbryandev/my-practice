@@ -1,7 +1,8 @@
 """ Views for the application """
-from django.shortcuts import get_object_or_404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
+from celery.result import AsyncResult
 from .crawler import exec_crawler
 from .modules import pdf2text
 from .models import Agency, Department, Agenda, Crawler
@@ -41,7 +42,17 @@ def fetch_agendas(request, dept_id):
 def convert_pdf(request, agenda_id):
     """ Function to convert a PDF agenda into text """
     agenda = Agenda.objects.get(pk=agenda_id)
-    agenda.agenda_text = pdf2text.convert_pdf(agenda.agenda_url)
+    agenda.agenda_text = pdf2text.convert_pdf.delay(agenda.agenda_url)
     agenda.save()
 
     return HttpResponseRedirect(reverse('council:agenda-detail', args=[str(agenda_id)]))
+
+"""
+def get_progress(request, task_id):
+    result = AsyncResult(task_id)
+    response_data = {
+        'state': result.state,
+        'details': result.info,
+    }
+    return HttpResponse(json.dumps(response_data), content_type='application/json')
+"""

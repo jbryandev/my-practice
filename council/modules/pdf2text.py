@@ -6,10 +6,12 @@ as a string.
 import io
 import re
 import requests
+from celery import task
 from pdf2image import convert_from_bytes
 import pytesseract
 
-def convert_pdf(pdf_url):
+@task
+def convert_pdf(pdf_url, progress_observer):
     """
     Module function.
     """
@@ -30,5 +32,6 @@ def convert_pdf(pdf_url):
         if match:
             print("PDF2Text: Adjourn keyword found. PDF2Text operation complete.")
             break
+        progress_observer.set_progress(image, len(images))
 
     return pdf_text
