@@ -8,9 +8,9 @@ Since all agendas are posted to the online system, this crawler can be
 used to handle any City department, as the extraction method will be
 the same.
 """
-from datetime import datetime
 import re
 import requests
+import dateutil.parser as dparser
 from bs4 import BeautifulSoup, SoupStrainer
 
 def retrieve_current_agendas(agendas_url):
@@ -34,16 +34,17 @@ def find_specific_agendas(parsed_html, agenda_name):
     agenda_set = []
     for tag in parsed_html.find_all("td", string=re.compile("%s" % agenda_name)):
         # Select first child in tag, which contains all the agenda info we need
-        agenda_info = tag.parent.select("td a")[0]
+        agenda_info = tag.parent.td
+
         # Convert agenda date string into datetime object
-        agenda_date = datetime.strptime(str(agenda_info.string), "%B %d, %Y")
+        agenda_date = dparser.parse(agenda_info.text, fuzzy=True)
 
-        # Clean up agenda url path
-        agenda_url = "http://agenda.edmondok.com:8085/" + agenda_info['href']
+        # Check for existence of agenda link and create agenda object if exists
+        if agenda_info.a:
+            agenda_url = "http://agenda.edmondok.com:8085/" + agenda_info.a['href']
+            agenda = {"agenda_date": agenda_date, "agenda_url": agenda_url}
+            agenda_set.append(agenda)
 
-        agenda = {"agenda_date": agenda_date, "agenda_url": agenda_url}
-
-        agenda_set.append(agenda)
     return agenda_set
 
 def get_agenda(agenda_url):
@@ -59,13 +60,12 @@ def get_agenda(agenda_url):
         agenda_pdf = "http://agenda.edmondok.com:8085" + download_link['href']
 
     # Parse out agenda HTML and save as agenda text
-    agenda_text_header = ""
-    for string in soup.find("thead").contents[7].strings:
-        agenda_text_header += string + "\n"
-    agenda_text_body = ""
-    for string in soup.find("tbody").strings:
-        agenda_text_body += string + "\n"
-    agenda_text = agenda_text_header + "\n" + agenda_text_body
+    rows = soup.find_all("tr")
+    agenda_text = ""
+    i = 3
+    while i < len(rows):
+        agenda_text += (rows[i].text.strip() + "\n")
+        i += 1
 
     agenda = {"agenda_url": agenda_url, "pdf_link": agenda_pdf, "agenda_text": agenda_text}
 

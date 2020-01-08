@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.environ.get("DJANGO_DEBUG"))
 
 ALLOWED_HOSTS = []
 
@@ -130,9 +130,14 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 # Activate Django-Heroku.
 django_heroku.settings(locals())
@@ -143,3 +148,17 @@ LOGOUT_REDIRECT_URL = 'home'
 
 # Phone Number Region
 PHONENUMBER_DEFAULT_REGION = 'US'
+
+# Celery Configuration
+CELERY_BROKER_URL = os.environ.get('CLOUDAMQP_URL')
+CELERY_BROKER_POOL_LIMIT = 1
+CELERY_BROKER_HEARTBEAT = None
+CELERY_BROKER_CONNECTION_TIMEOUT = 30
+CELERY_RESULT_BACKEND = 'rpc'
+CELERY_EVENT_QUEUE_EXPIRES = 60
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_CONCURRENCY = 1
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TIMEZONE = 'US/Central'

@@ -3,6 +3,7 @@
 
 {% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | Agenda Detail{% endblock %}
 
+
 {% block content %}
 <!-- Page navigation -->
 <nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'council:index' %}">Council Insights</a> >
@@ -19,10 +20,19 @@
 
 <hr></hr>
 
-{% if agenda.agenda_text %}
-    <p>{{ agenda.agenda_text|linebreaks }}</p>
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+    {% endfor %}
+</div>
 {% else %}
-    <p>Agenda text has not yet been generated. Click <a href="{% url 'council:convert-pdf' agenda.id %}">here</a>
-        to convert the agenda PDF into text. Note: this may take a few minutes</p>
+    {% if agenda.agenda_text %}
+        <p>{{ agenda.agenda_text|linebreaks }}</p>
+    {% else %}
+        <p>Agenda text has not yet been generated. Click <a href="{% url 'council:convert-pdf' agenda.id %}">here</a>
+            to convert the agenda PDF into text. Note: this may take a few minutes</p>
+    {% endif %}
 {% endif %}
+
 {% endblock %}
