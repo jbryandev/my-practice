@@ -1,6 +1,6 @@
 """ Views for the application """
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, HttpResponseRedirect, render
 from django.urls import reverse
 from django.views import generic
 from .crawler import exec_crawler
@@ -42,7 +42,10 @@ def fetch_agendas(request, dept_id):
 def convert_pdf(request, agenda_id):
     """ Converts PDF to text in background with celery """
     print("Calling convert_agenda_pdf() through celery...")
-    convert_agenda_pdf.delay(agenda_id)
+    result = convert_agenda_pdf.delay(agenda_id)
     messages.info(request, 'PDF is being converted to text. Refresh this page in a few minutes.')
 
-    return HttpResponseRedirect(reverse('council:agenda-detail', args=[str(agenda_id)]))
+    return HttpResponseRedirect(
+        reverse('council:agenda-detail', args=[str(agenda_id)]),
+        context={'task_id': result.task_id}
+    )
