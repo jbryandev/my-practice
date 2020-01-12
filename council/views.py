@@ -1,6 +1,6 @@
 """ Views for the application """
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, HttpResponseRedirect, render
+from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from .crawler import exec_crawler
