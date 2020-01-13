@@ -14,7 +14,7 @@
     <div id="celery-result"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var progressUrl = "#";
+            var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
             CeleryProgressBar.initProgressBar(progressUrl);
         });
     </script>

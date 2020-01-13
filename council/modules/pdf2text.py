@@ -9,13 +9,14 @@ import requests
 from pdf2image import convert_from_bytes
 import pytesseract
 from celery_progress.backend import ProgressRecorder
+from celery import shared_task
 
-
-def convert_pdf(task, pdf_url):
+@shared_task(bind=True)
+def convert_pdf(self, pdf_url):
     """
     Module function.
     """
-    #progress_recorder = ProgressRecorder(task)
+    progress_recorder = ProgressRecorder(self)
     pdf_text = ""
     print("PDF2Text: Getting HTTP response...")
     response = requests.get(pdf_url)
@@ -25,7 +26,7 @@ def convert_pdf(task, pdf_url):
     images = convert_from_bytes(file.read())
     i = 1
     for image in images:
-        #progress_recorder.set_progress(images, len(images))
+        progress_recorder.set_progress(i, len(images))
         print("PDF2Text: Converting page " + str(i) + "...")
         pdf_text += str(((pytesseract.image_to_string(image))))
         print("PDF2Text: Conversion of page " + str(i) + " complete.")

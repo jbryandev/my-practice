@@ -9,5 +9,5 @@ urlpatterns = [
     path('department/<int:pk>/', views.DepartmentView.as_view(), name='department-detail'),
     path('agenda/<int:pk>/', views.AgendaView.as_view(), name='agenda-detail'),
     path('department/<int:dept_id>/fetch', views.fetch_agendas, name='fetch-agendas'),
-    path('agenda/<int:agenda_id>/convert', views.convert_pdf, name='convert-pdf'),
+    path('agenda/<int:agenda_id>/convert', views.convert_agenda_pdf, name='convert-pdf'),
 ]
