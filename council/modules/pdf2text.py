@@ -9,9 +9,9 @@ import requests
 from pdf2image import convert_from_bytes
 import pytesseract
 from celery_progress.backend import ProgressRecorder
-from celery import shared_task
+#from celery import shared_task
 
-@shared_task(bind=True)
+#@shared_task(bind=True)
 def convert_pdf(self, pdf_url):
     """
     Module function.

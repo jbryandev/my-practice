@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.views import generic
 from .crawler import exec_crawler
 from .models import Agency, Department, Agenda, Crawler
-from .modules.pdf2text import convert_pdf
+from .tasks import convert_to_pdf
 
 # Create your views here.
 
@@ -38,12 +38,9 @@ def fetch_agendas(request, dept_id):
 
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(dept_id)]))
 
-def convert_agenda_pdf(request, agenda_id):
+def convert_agenda_to_pdf(request, agenda_id):
     """ Converts PDF to text in background with celery """
-    agenda = Agenda.objects.get(pk=agenda_id)
-    agenda_url = agenda.agenda_url
-    result = convert_pdf.delay(agenda_url)
+    result = convert_to_pdf.delay(agenda_id)
     context = {'task_id': result.task_id}
 
     return render(request, 'council/agenda_convert.html', context=context)
-    #return HttpResponseRedirect(reverse('council:agenda-detail', args=[str(agenda_id)]))
