@@ -23,5 +23,5 @@ urlpatterns = [
     path('projects/', include('projects.urls')),
     path('council/', include('council.urls')),
     path('admin/', admin.site.urls),
-    re_path(r'^celery-progress/', include('celery_progress.urls', namespace="celery_progress")),
+    re_path(r'^celery-progress/', include('celery_progress.urls')),
 ]

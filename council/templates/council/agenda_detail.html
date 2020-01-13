@@ -1,11 +1,9 @@
 <!-- templates/agenda-detail.html -->
 {% extends 'base.html' %}
-{% load static %}
+
 {% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | Agenda Detail{% endblock %}
 
 {% block content %}
-<script src="{% static 'celery_progress/celery_progress.js' %}"></script>
-
 
 <!-- Page navigation -->
 <nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'council:index' %}">Council Insights</a> >
@@ -21,12 +19,6 @@
 {% endif %}
 
 <hr></hr>
-
-<div class='progress-wrapper'>
-    <div id='progress-bar' class='progress-bar' style="background-color: #68a9ef; width: 0%;">&nbsp;</div>
-</div>
-<div id="progress-bar-message">Waiting for progress to start...</div>
-<div id="celery-result"></div>
 
 {% if messages %}
 <div class="messages">
