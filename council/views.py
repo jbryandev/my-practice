@@ -1,5 +1,5 @@
 """ Views for the application """
-from django.shortcuts import get_object_or_404, HttpResponseRedirect, render
+from django.shortcuts import get_object_or_404, HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
 from .crawler import exec_crawler
@@ -30,6 +30,17 @@ class AgendaView(generic.DetailView):
     model = Agenda
     template_name = 'council/agenda_detail.html'
 
+class AgendaConvertView(generic.DetailView):
+    """ View for the agenda convert  page """
+    model = Agenda
+    template_name = 'council/agenda_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        result = convert_to_pdf.delay(context['agenda'].pk)
+        context['task_id'] = result.task_id
+        return context
+
 def fetch_agendas(request, dept_id):
     """ Function to fetch new agendas for a department """
     department = get_object_or_404(Department, pk=dept_id)
@@ -37,10 +48,3 @@ def fetch_agendas(request, dept_id):
     exec_crawler(crawler, department)
 
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(dept_id)]))
-
-def convert_agenda_to_pdf(request, agenda_id):
-    """ Converts PDF to text in background with celery """
-    result = convert_to_pdf.delay(agenda_id)
-    context = {'task_id': result.task_id}
-
-    return render(request, 'council/agenda_convert.html', context=context)
