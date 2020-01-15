@@ -15,7 +15,8 @@ def convert_to_pdf(self, agenda_id):
     agenda = Agenda.objects.get(pk=agenda_id)
     agenda_url = agenda.agenda_url
     agenda.agenda_text = convert_pdf(agenda_url, progress_recorder)
-    progress_recorder.set_progress(14, 15, description="PDF conversion complete. Saving to database...")
+    progress_recorder.set_progress(
+        14, 15, description="PDF conversion complete. Saving to database...")
     time.sleep(2)
     agenda.save()
 

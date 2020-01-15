@@ -4,9 +4,13 @@
 {% block title %} | Council Insights | {{ agency.agency_name }}{% endblock %}
 
 {% block content %}
-<!-- Page navigation -->
-<nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'council:index' %}">Council Insights</a></nav>
-
+{% load breadcrumbs %}
+{% block breadcrumbs %}
+    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "Council Insights" "council:index" %}
+    {% breadcrumb agency "council:agency-detail" agency.id %}
+{% endblock %}
+{% render_breadcrumbs %}
 <!-- Agency name for page heading -->
 <h2>{{ agency.agency_name }}</h2>
 <hr></hr>

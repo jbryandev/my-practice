@@ -4,7 +4,13 @@
 {% block title %} | Council Insights | Home{% endblock %}
 
 {% block content %}
-<nav><a href="{% url 'home' %}">Home</a></nav>
+{% load breadcrumbs %}
+{% block breadcrumbs %}
+    {% clear_breadcrumbs %}
+    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "Council Insights" "council:index" %}
+{% endblock %}
+{% render_breadcrumbs %}
 <h2>Council Insights</h2>
 <hr></hr>
 {% if agency_list %}

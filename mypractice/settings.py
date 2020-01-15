@@ -75,6 +75,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'breadcrumbs': 'mypractice.templatetags.breadcrumbs',
+            },
         },
     },
 ]
@@ -157,3 +160,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TIMEZONE = 'US/Central'
+
+# Breadcrumbs Template
+BREADCRUMBS_TEMPLATE = "breadcrumbs.html"
