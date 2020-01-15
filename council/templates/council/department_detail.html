@@ -29,6 +29,11 @@
 {% endif %}
 
 <!-- List agendas -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 <strong>Stored Agendas:</strong>
 {% if department.agendas.all.exists %}
     <ul>

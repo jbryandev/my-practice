@@ -1,10 +1,10 @@
 """ Views for the application """
-from django.shortcuts import get_object_or_404, HttpResponseRedirect
-from django.urls import reverse
+#from django.shortcuts import get_object_or_404, HttpResponseRedirect
+#from django.urls import reverse
 from django.views import generic
-from .crawler import exec_crawler
-from .models import Agency, Department, Agenda, Crawler
-from .tasks import convert_to_pdf
+#from .crawler import exec_crawler
+from .models import Agency, Department, Agenda #, Crawler
+from .tasks import convert_to_pdf, fetch_agendas
 
 # Create your views here.
 
@@ -25,6 +25,17 @@ class DepartmentView(generic.DetailView):
     model = Department
     template_name = 'council/department_detail.html'
 
+class DepartmentFetchView(generic.DetailView):
+    """ View for the department fetch agendas page """
+    model = Department
+    template_name = 'council/department_fetch.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        result = fetch_agendas.delay(context['department'].pk)
+        context['task_id'] = result.task_id
+        return context
+
 class AgendaView(generic.DetailView):
     """ View for the agenda detail page """
     model = Agenda
@@ -41,10 +52,12 @@ class AgendaConvertView(generic.DetailView):
         context['task_id'] = result.task_id
         return context
 
-def fetch_agendas(request, dept_id):
-    """ Function to fetch new agendas for a department """
+
+#def fetch_agendas(request, dept_id):
+    """ Function to fetch new agendas for a department
     department = get_object_or_404(Department, pk=dept_id)
     crawler = get_object_or_404(Crawler, department=department)
     exec_crawler(crawler, department)
 
     return HttpResponseRedirect(reverse('council:department-detail', args=[str(dept_id)]))
+"""

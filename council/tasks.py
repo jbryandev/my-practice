@@ -25,8 +25,10 @@ def convert_to_pdf(self, agenda_id):
 @shared_task(bind=True)
 def fetch_agendas(self, dept_id):
     """ Fetch new agendas for a given department via celery """
+    progress_recorder = ProgressRecorder(self)
+    progress_recorder.set_progress(0, 15, description="Connecting to City website...")
     department = get_object_or_404(Department, pk=dept_id)
     crawler = get_object_or_404(Crawler, department=department)
-    exec_crawler(crawler, department)
+    exec_crawler(crawler, department, progress_recorder)
 
     return "Fetch agendas complete."
