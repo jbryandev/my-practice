@@ -5,15 +5,21 @@
 {% block title %} - Project Detail{% endblock %}
 
 {% block content %}
-<!-- Page Navigation -->
-<nav><a href="{% url 'home' %}">Home</a> > <a href="{% url 'projects:index' %}">Projects</a></nav>
+{% load breadcrumbs %}
+{% block breadcrumbs %}
+    {% clear_breadcrumbs %}
+    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "Projects" "projects:index" %}
+    {% breadcrumb project.project_name project.id %}
+{% endblock %}
+{% render_breadcrumbs %}
 
-<!-- Project Title & Location -->
+<!-- Project Title -->
 <h2>{{ project.project_name }}</h2>
-<h4>{{ project.project_location }}</h4>
 <hr></hr>
 <!-- Project Details -->
 <ul>
+    <li><strong>Location: </strong>{{ project.project_location }}</li>
     <li><strong>Project Number: </strong>{{ project.project_number }}</li>
     <li><strong>Project Manager: </strong>{{ project.project_manager }}</li>
     <li><strong>Client Name: </strong>{{ project.client_name }}</li>

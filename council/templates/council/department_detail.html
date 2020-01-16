@@ -24,7 +24,7 @@
 {% endif %}
 
 {% if department.agendas_url %}
-    <p><a class="btn btn-primary" href="{{ department.agendas_url }}" role="button">City Website</a>
+    <p><a class="btn btn-primary" href="{{ department.agendas_url }}" role="button" target="_blank">City Website</a>
         <a class="btn btn-danger" href="{% url 'council:fetch-agendas' department.id %}" role="button">Fetch New Agendas</a></p>
 {% endif %}
 

@@ -5,7 +5,13 @@
 {% block title %} - Projects{% endblock %}
 
 {% block content %}
-<nav><a href="{% url 'home' %}">Home</a></nav>
+{% load breadcrumbs %}
+{% block breadcrumbs %}
+    {% clear_breadcrumbs %}
+    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "Projects" "projects:index" %}
+{% endblock %}
+{% render_breadcrumbs %}
 <h2>Projects</h2>
 <hr></hr>
 {% if project_list %}

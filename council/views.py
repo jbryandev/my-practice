@@ -51,13 +51,3 @@ class AgendaConvertView(generic.DetailView):
         result = convert_to_pdf.delay(context['agenda'].pk)
         context['task_id'] = result.task_id
         return context
-
-
-#def fetch_agendas(request, dept_id):
-    """ Function to fetch new agendas for a department
-    department = get_object_or_404(Department, pk=dept_id)
-    crawler = get_object_or_404(Crawler, department=department)
-    exec_crawler(crawler, department)
-
-    return HttpResponseRedirect(reverse('council:department-detail', args=[str(dept_id)]))
-"""
