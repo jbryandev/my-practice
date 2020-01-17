@@ -4,13 +4,12 @@ corresponding crawler modules. The controller creates
 new Agenda objects and adds them to the database.
 """
 import time
+import importlib
 from datetime import datetime
 from django.utils.timezone import get_current_timezone
-from celery_progress.backend import ProgressRecorder
 from .crawlers import edmond
 from .crawlers import el_reno
 from .crawlers import lawton
-from .crawlers import midwest_city
 from .crawlers import moore
 from .crawlers import norman
 from .crawlers import okc
@@ -23,6 +22,11 @@ def agenda_exists(agenda_url):
     already associated with an agenda in the database.
     """
     return bool(Agenda.objects.filter(agenda_url=agenda_url).exists())
+
+def set_progress(progress_recorder, start, end, descr, delay):
+    """ This function controls the progress recorder """
+    progress_recorder.set_progress(start, end, description=descr)
+    time.sleep(delay)
 
 def exec_crawler(crawler, calling_department, progress_recorder):
     """ Linking function between Crawler models and Crawler modules. """
@@ -37,7 +41,8 @@ def exec_crawler(crawler, calling_department, progress_recorder):
         lawton_crawler(calling_department, progress_recorder)
 
     elif crawler.crawler_name == "Midwest City":
-        midwest_city_crawler(calling_department, progress_recorder)
+        module = importlib.import_module('council.crawlers.midwest_city')
+        standard_crawler(module, calling_department, progress_recorder)
 
     elif crawler.crawler_name == "Moore":
         moore_crawler(calling_department, progress_recorder)
@@ -51,18 +56,61 @@ def exec_crawler(crawler, calling_department, progress_recorder):
     elif crawler.crawler_name == "Tulsa":
         tulsa_crawler(calling_department, progress_recorder)
 
+def standard_crawler(module, calling_department, progress_recorder):
+    """ Standard function for executing crawlers """
+    descr = 'Connecting to City website...'
+    set_progress(progress_recorder, 0, 15, descr, 2)
+    agendas_url = calling_department.agendas_url
+
+    descr = 'Connection succeeded. Getting agenda list...'
+    set_progress(progress_recorder, 1, 15, descr, 2)
+    agendas_list = getattr(module, 'retrieve_agendas')(agendas_url)
+
+    descr = 'Searching for matching department agendas...'
+    set_progress(progress_recorder, 2, 15, descr, 2)
+    matched_agendas = getattr(
+        module, 'match_agendas')(agendas_list, calling_department.department_name)
+
+    i = 1
+    j = 0
+
+    for agenda in matched_agendas:
+        total = len(matched_agendas)
+        descr = "Processing agenda " + str(i) + " of " + str(total) + "..."
+        set_progress(progress_recorder, i+2, total+3, descr, 1)
+        agenda_url = agenda.get("agenda_url")
+
+        if not agenda_exists(agenda_url):
+            j += 1
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text="", # will be generated upon user request
+                pdf_link=agenda_url,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+        i += 1
+
+    descr = "Finished processing. Found " + str(j) + " new agendas."
+    set_progress(progress_recorder, 14, 15, descr, 2)
+
 def edmond_crawler(calling_department, progress_recorder):
     """ Edmond Crawler function. """
     progress_recorder.set_progress(0, 15, description="Connecting to City website...")
     time.sleep(2)
     agendas_url = calling_department.agendas_url
     agenda_name = calling_department.department_name
-    
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agenda_html = edmond.retrieve_current_agendas(agendas_url)
-    
-    progress_recorder.set_progress(2, 15, description="Searching for department-specific agendas...")
+
+    progress_recorder.set_progress(
+        2, 15, description="Searching for department-specific agendas...")
     time.sleep(2)
     specific_agendas = edmond.find_specific_agendas(agenda_html, agenda_name)
 
@@ -75,7 +123,8 @@ def edmond_crawler(calling_department, progress_recorder):
         j = 0
 
         for agenda in specific_agendas:
-            progress_desc = "Processing agenda " + str(i) + " of " + str(len(specific_agendas)) + "..."
+            progress_desc = "Processing agenda " + str(i) + " of " \
+                + str(len(specific_agendas)) + "..."
             progress_recorder.set_progress(i+3, len(specific_agendas)+4, description=progress_desc)
             time.sleep(1)
             agenda_url = agenda.get("agenda_url")
@@ -103,7 +152,8 @@ def edmond_crawler(calling_department, progress_recorder):
         progress_recorder.set_progress(14, 15, description=progress_desc)
         time.sleep(2)
     else:
-        progress_recorder.set_progress(14, 15, description="Did not find any matching department agendas.")
+        progress_recorder.set_progress(
+            14, 15, description="Did not find any matching department agendas.")
         time.sleep(2)
 
 def el_reno_crawler(calling_department, progress_recorder):
@@ -112,11 +162,13 @@ def el_reno_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = el_reno.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Selecting most recent agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Selecting most recent agendas...")
     time.sleep(2)
     recent_agendas = el_reno.get_most_recent_agendas(agendas_list)
 
@@ -154,11 +206,13 @@ def lawton_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = lawton.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Searching for matching department agendas...")
     time.sleep(2)
     matched_agendas = lawton.match_agendas(agendas_list, calling_department.department_name)
 
@@ -189,58 +243,19 @@ def lawton_crawler(calling_department, progress_recorder):
     progress_recorder.set_progress(14, 15, description=progress_desc)
     time.sleep(2)
 
-def midwest_city_crawler(calling_department, progress_recorder):
-    """ Midwest City Crawler function. """
-    progress_recorder.set_progress(0, 15, description="Connecting to City website...")
-    time.sleep(2)
-    agendas_url = calling_department.agendas_url
-
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
-    time.sleep(2)
-    agendas_list = midwest_city.retrieve_agendas(agendas_url)
-
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
-    time.sleep(2)
-    matched_agendas = midwest_city.match_agendas(agendas_list, calling_department.department_name)
-
-    i = 1
-    j = 0
-
-    for agenda in matched_agendas:
-        progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
-        progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
-        time.sleep(1)
-        agenda_url = agenda.get("agenda_url")
-
-        if not agenda_exists(agenda_url):
-            j += 1
-            new_agenda = Agenda(
-                agenda_date=agenda.get("agenda_date"),
-                agenda_title=agenda.get("agenda_title"),
-                agenda_url=agenda_url,
-                agenda_text="", # will be generated upon user request
-                pdf_link=agenda_url,
-                date_added=datetime.now(tz=get_current_timezone()),
-                department=calling_department
-            )
-            new_agenda.save()
-        i += 1
-
-    progress_desc = "Finished processing. Found " + str(j) + " new agendas."
-    progress_recorder.set_progress(14, 15, description=progress_desc)
-    time.sleep(2)
-
 def moore_crawler(calling_department, progress_recorder):
     """ Moore Crawler function. """
     progress_recorder.set_progress(0, 15, description="Connecting to City website...")
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = moore.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Searching for matching department agendas...")
     time.sleep(2)
     matched_agendas = moore.match_agendas(agendas_list, calling_department.department_name)
 
@@ -278,11 +293,13 @@ def norman_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = norman.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Searching for matching department agendas...")
     time.sleep(2)
     matched_agendas = norman.match_agendas(agendas_list, calling_department.department_name)
 
@@ -319,11 +336,13 @@ def okc_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = okc.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Searching for matching department agendas...")
     time.sleep(2)
     matched_agendas = okc.match_agendas(agendas_list, calling_department.department_name)
 
@@ -363,11 +382,13 @@ def tulsa_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
 
-    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    progress_recorder.set_progress(
+        1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agendas_list = tulsa.retrieve_agendas(agendas_url)
 
-    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    progress_recorder.set_progress(
+        2, 15, description="Searching for matching department agendas...")
     time.sleep(2)
     matched_agendas = tulsa.match_agendas(agendas_list, calling_department.department_name)
 
