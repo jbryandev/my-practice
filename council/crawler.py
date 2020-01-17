@@ -57,18 +57,23 @@ def edmond_crawler(calling_department, progress_recorder):
     time.sleep(2)
     agendas_url = calling_department.agendas_url
     agenda_name = calling_department.department_name
+    
     progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
     time.sleep(2)
     agenda_html = edmond.retrieve_current_agendas(agendas_url)
+    
     progress_recorder.set_progress(2, 15, description="Searching for department-specific agendas...")
     time.sleep(2)
     specific_agendas = edmond.find_specific_agendas(agenda_html, agenda_name)
+
     if specific_agendas:
         progress_desc = "Found " + str(len(specific_agendas)) + " department agendas."
         progress_recorder.set_progress(3, 15, description=progress_desc)
         time.sleep(2)
+
         i = 1
         j = 0
+
         for agenda in specific_agendas:
             progress_desc = "Processing agenda " + str(i) + " of " + str(len(specific_agendas)) + "..."
             progress_recorder.set_progress(i+3, len(specific_agendas)+4, description=progress_desc)
@@ -138,22 +143,35 @@ def el_reno_crawler(calling_department, progress_recorder):
             )
             new_agenda.save()
         i += 1
+
     progress_desc = "Finished processing. Found " + str(j) + " new agendas."
     progress_recorder.set_progress(14, 15, description=progress_desc)
     time.sleep(2)
 
 def lawton_crawler(calling_department, progress_recorder):
     """ Lawton Crawler function. """
+    progress_recorder.set_progress(0, 15, description="Connecting to City website...")
+    time.sleep(2)
     agendas_url = calling_department.agendas_url
+
+    progress_recorder.set_progress(1, 15, description="Connection succeeded. Getting agenda list...")
+    time.sleep(2)
     agendas_list = lawton.retrieve_agendas(agendas_url)
-    print("Attempting to find any matching agendas")
+
+    progress_recorder.set_progress(2, 15, description="Searching for matching department agendas...")
+    time.sleep(2)
     matched_agendas = lawton.match_agendas(agendas_list, calling_department.department_name)
+
+    i = 1
+    j = 0
+
     for agenda in matched_agendas:
-        print("Agenda match found. Attemping to get agenda URL...")
+        progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
+        progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
         agenda_url = lawton.get_agenda_url(agenda.get("agenda_detail_url"))
-        print("URL found. Checking to see if it already exists in db...")
+
         if not agenda_exists(agenda_url):
-            print("Agenda does not yet exist. Preparing to add to db...")
+            j += 1
             new_agenda = Agenda(
                 agenda_date=agenda.get("agenda_date"),
                 agenda_title=agenda.get("agenda_title"),
@@ -164,8 +182,11 @@ def lawton_crawler(calling_department, progress_recorder):
                 department=calling_department
             )
             new_agenda.save()
-        else:
-            print("Agenda already exists in db. Aborting.")
+        i += 1
+
+    progress_desc = "Finished processing. Found " + str(j) + " new agendas."
+    progress_recorder.set_progress(14, 15, description=progress_desc)
+    time.sleep(2)
 
 def midwest_city_crawler(calling_department, progress_recorder):
     """ Midwest City Crawler function. """

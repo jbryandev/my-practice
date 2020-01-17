@@ -23,25 +23,22 @@
     <p>{{ department.meeting_info|linebreaks }}</p>
 {% endif %}
 
-{% if department.agendas_url %}
-    <p><button type="button" class="btn btn-secondary">City Website</button>
-        <button type="button" class="btn btn-secondary">Fetch New Agendas</button></p>
-{% endif %}
-
-<!-- List agendas -->
 {% if messages %}
+<!-- Message display -->
     {% for message in messages %}
         <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
     {% endfor %}
 {% endif %}
+
 {% if task_id %}
+<!-- Progress bar -->
     {% load static %}
     <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
-    <div class='progress' style="height: 20px;">
+    <p><div class='progress' style="height: 20px;">
         <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
     </div>
     <div id="progress-bar-message">Connecting to City website...</div>
-    <div id="celery-result"></div>
+    <div id="celery-result"></div></p>
     <script>
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -78,6 +75,8 @@
         });
     </script>
 {% endif %}
+
+<!-- List agendas -->
 <strong>Stored Agendas:</strong>
 {% if department.agendas.all.exists %}
     <ul>
