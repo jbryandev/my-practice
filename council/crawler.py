@@ -168,6 +168,7 @@ def lawton_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = lawton.get_agenda_url(agenda.get("agenda_detail_url"))
 
         if not agenda_exists(agenda_url):
@@ -208,6 +209,7 @@ def midwest_city_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = agenda.get("agenda_url")
 
         if not agenda_exists(agenda_url):
@@ -248,6 +250,7 @@ def moore_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = moore.get_agenda_url(agenda.get("agenda_detail"))
 
         if agenda_url:
@@ -289,6 +292,7 @@ def norman_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = agenda.get("agenda_url")
 
         if not agenda_exists(agenda_url):
@@ -329,6 +333,7 @@ def okc_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = agenda.get("agenda_url")
         agenda_view_link = agenda.get("agenda_view_link")
 
@@ -372,6 +377,7 @@ def tulsa_crawler(calling_department, progress_recorder):
     for agenda in matched_agendas:
         progress_desc = "Processing agenda " + str(i) + " of " + str(len(matched_agendas)) + "..."
         progress_recorder.set_progress(i+2, len(matched_agendas)+3, description=progress_desc)
+        time.sleep(1)
         agenda_url = agenda.get("agenda_url")
 
         if not agenda_exists(agenda_url):
@@ -388,3 +394,7 @@ def tulsa_crawler(calling_department, progress_recorder):
             )
             new_agenda.save()
         i += 1
+
+    progress_desc = "Finished processing. Found " + str(j) + " new agendas."
+    progress_recorder.set_progress(14, 15, description=progress_desc)
+    time.sleep(2)
