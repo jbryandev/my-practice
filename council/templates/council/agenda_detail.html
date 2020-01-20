@@ -1,6 +1,8 @@
 <!-- templates/agenda-detail.html -->
 {% extends 'base.html' %}
 
+{% load customtags %}
+
 {% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | Agenda Detail{% endblock %}
 
 {% block content %}
@@ -18,13 +20,15 @@
 <h2>{{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }}</h2>
 
 {% if agenda.pdf_link %}
-    <a class="btn btn-primary" href="{{ agenda.pdf_link }}" role="button">Download PDF</a>
+<a class="btn btn-primary" href="{{ agenda.pdf_link }}" role="button">Download PDF</a>
 {% endif %}
+<a class="btn btn-secondary" href="#" role="button">Hide</a>
+<a class="btn btn-danger" href="#" role="button">Delete</a>
 
 <hr></hr>
 
 {% if agenda.agenda_text %}
-    <p>{{ agenda.agenda_text|linebreaks }}</p>
+    <p>{{ agenda.agenda_text|highlight:agenda.id|linebreaks }}</p>
 {% else %}
     {% if task_id %}
         {% load static %}

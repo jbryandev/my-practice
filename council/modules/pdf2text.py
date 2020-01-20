@@ -32,7 +32,7 @@ def convert_pdf(pdf_url, progress_recorder):
     i = 1
     for image in images:
         print("PDF2Text: Converting page " + str(i) + "...")
-        progress_desc = "Converting page " + str(i) + " of " + str(len(images))
+        progress_desc = "Converting page " + str(i) + " of " + str(len(images)) + "..."
         progress_recorder.set_progress(i + 2, len(images) + 3, description=progress_desc)
         pdf_text += str(((pytesseract.image_to_string(image))))
         print("PDF2Text: Conversion of page " + str(i) + " complete.")

@@ -3,7 +3,7 @@
 #from django.urls import reverse
 from django.views import generic
 #from .crawler import exec_crawler
-from .models import Agency, Department, Agenda #, Crawler
+from .models import Agency, Department, Agenda
 from .tasks import convert_to_pdf, fetch_agendas
 
 # Create your views here.
@@ -40,6 +40,13 @@ class AgendaView(generic.DetailView):
     """ View for the agenda detail page """
     model = Agenda
     template_name = 'council/agenda_detail.html'
+
+    def get(self, request, *args, **kwargs):
+        """ On page get, set viewed attribute to true """
+        agenda = Agenda.objects.get(pk=self.get_object().id)
+        agenda.viewed = True
+        agenda.save()
+        return super(AgendaView, self).get(request, *args, **kwargs)
 
 class AgendaConvertView(generic.DetailView):
     """ View for the agenda convert  page """

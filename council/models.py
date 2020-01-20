@@ -51,6 +51,8 @@ class Agenda(models.Model):
     agenda_text = models.TextField(null=True, blank=True)
     pdf_link = models.URLField(null=True, blank=True, max_length=500)
     date_added = models.DateTimeField(null=True, blank=True)
+    viewed = models.BooleanField(default=False, null=False)
+    active = models.BooleanField(default=True, null=False)
     department = models.ForeignKey(Department, related_name='agendas', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -60,12 +62,13 @@ class Agenda(models.Model):
         """ Return absolute URL of agenda. """
         return reverse('council:agenda-detail', args=[str(self.id)])
 
-    def agenda_exists(self, agenda_url):
-        """
-        This function takes an agenda URL and makes sure that it is not
-        already associated with an agenda in the database.
-        """
-        return bool(self.objects.filter(agenda_url=agenda_url).exists())
+    def is_new(self):
+        """ Returns true if viewed is false """
+        return not self.viewed
+
+    def is_active(self):
+        """ Returns active state """
+        return self.active
 
 class Crawler(models.Model):
     """
@@ -119,6 +122,9 @@ class Keyphrase(models.Model):
     specific to a particular agency or department.
     Keyphrase matches form the basis for generating highlights.
     """
+    class Meta:
+        ordering = ('kp_text', 'date_added')
+
     kp_text = models.CharField(
         "keyphrase", max_length=200, null=False, blank=False, default="Default")
     date_added = models.DateTimeField(null=True, blank=True)
