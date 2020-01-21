@@ -28,7 +28,11 @@
 <hr></hr>
 
 {% if agenda.agenda_text %}
-    <p>{{ agenda.agenda_text|highlight:agenda.id|linebreaks }}</p>
+    <p>
+    {% autoescape off %}
+    {{ agenda.agenda_text|highlight:agenda.id|linebreaks }}
+    {% endautoescape %}
+    </p>
 {% else %}
     {% if task_id %}
         {% load static %}

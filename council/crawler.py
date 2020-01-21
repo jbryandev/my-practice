@@ -4,12 +4,12 @@ corresponding crawler modules. The controller creates
 new Agenda objects and adds them to the database.
 """
 import time
-import importlib
 from datetime import datetime
 from django.utils.timezone import get_current_timezone
 from .crawlers import edmond
 from .crawlers import el_reno
 from .crawlers import lawton
+from .crawlers import midwest_city
 from .crawlers import moore
 from .crawlers import norman
 from .crawlers import okc
@@ -41,8 +41,7 @@ def exec_crawler(crawler, calling_department, progress_recorder):
         lawton_crawler(calling_department, progress_recorder)
 
     elif crawler.crawler_name == "Midwest City":
-        module = importlib.import_module('council.crawlers.midwest_city')
-        standard_crawler(module, calling_department, progress_recorder)
+        midwest_city_crawler(calling_department, progress_recorder)
 
     elif crawler.crawler_name == "Moore":
         moore_crawler(calling_department, progress_recorder)
@@ -55,47 +54,6 @@ def exec_crawler(crawler, calling_department, progress_recorder):
 
     elif crawler.crawler_name == "Tulsa":
         tulsa_crawler(calling_department, progress_recorder)
-
-def standard_crawler(module, calling_department, progress_recorder):
-    """ Standard function for executing crawlers """
-    descr = 'Connecting to City website...'
-    set_progress(progress_recorder, 0, 15, descr, 2)
-    agendas_url = calling_department.agendas_url
-
-    descr = 'Connection succeeded. Getting agenda list...'
-    set_progress(progress_recorder, 1, 15, descr, 2)
-    agendas_list = getattr(module, 'retrieve_agendas')(agendas_url)
-
-    descr = 'Searching for matching department agendas...'
-    set_progress(progress_recorder, 2, 15, descr, 2)
-    matched_agendas = getattr(
-        module, 'match_agendas')(agendas_list, calling_department.department_name)
-
-    i = 1
-    j = 0
-
-    for agenda in matched_agendas:
-        total = len(matched_agendas)
-        descr = "Processing agenda " + str(i) + " of " + str(total) + "..."
-        set_progress(progress_recorder, i+2, total+3, descr, 1)
-        agenda_url = agenda.get("agenda_url")
-
-        if not agenda_exists(agenda_url):
-            j += 1
-            new_agenda = Agenda(
-                agenda_date=agenda.get("agenda_date"),
-                agenda_title=agenda.get("agenda_title"),
-                agenda_url=agenda_url,
-                agenda_text="", # will be generated upon user request
-                pdf_link=agenda_url,
-                date_added=datetime.now(tz=get_current_timezone()),
-                department=calling_department
-            )
-            new_agenda.save()
-        i += 1
-
-    descr = "Finished processing. Found " + str(j) + " new agendas."
-    set_progress(progress_recorder, 14, 15, descr, 2)
 
 def edmond_crawler(calling_department, progress_recorder):
     """ Edmond Crawler function. """
@@ -242,6 +200,46 @@ def lawton_crawler(calling_department, progress_recorder):
     progress_desc = "Finished processing. Found " + str(j) + " new agendas."
     progress_recorder.set_progress(14, 15, description=progress_desc)
     time.sleep(2)
+
+def midwest_city_crawler(calling_department, progress_recorder):
+    """ Edmond Crawler function. """
+    descr = 'Connecting to City website...'
+    set_progress(progress_recorder, 0, 15, descr, 2)
+    agendas_url = calling_department.agendas_url
+
+    descr = 'Connection succeeded. Getting agenda list...'
+    set_progress(progress_recorder, 1, 15, descr, 2)
+    agendas_list = midwest_city.retrieve_agendas(agendas_url)
+
+    descr = 'Searching for matching department agendas...'
+    set_progress(progress_recorder, 2, 15, descr, 2)
+    matched_agendas = midwest_city.match_agendas(agendas_list, calling_department.department_name)
+
+    i = 1
+    j = 0
+
+    for agenda in matched_agendas:
+        total = len(matched_agendas)
+        descr = "Processing agenda " + str(i) + " of " + str(total) + "..."
+        set_progress(progress_recorder, i+2, total+3, descr, 1)
+        agenda_url = agenda.get("agenda_url")
+
+        if not agenda_exists(agenda_url):
+            j += 1
+            new_agenda = Agenda(
+                agenda_date=agenda.get("agenda_date"),
+                agenda_title=agenda.get("agenda_title"),
+                agenda_url=agenda_url,
+                agenda_text="", # will be generated upon user request
+                pdf_link=agenda_url,
+                date_added=datetime.now(tz=get_current_timezone()),
+                department=calling_department
+            )
+            new_agenda.save()
+        i += 1
+
+    descr = "Finished processing. Found " + str(j) + " new agendas."
+    set_progress(progress_recorder, 14, 15, descr, 2)
 
 def moore_crawler(calling_department, progress_recorder):
     """ Moore Crawler function. """
