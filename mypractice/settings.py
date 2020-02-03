@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'login_required',
     'django_tables2',
-    'phonenumber_field',
     'council',
     'projects',
     'celery_progress',
@@ -77,6 +76,7 @@ TEMPLATES = [
             ],
             'libraries': {
                 'breadcrumbs': 'mypractice.templatetags.breadcrumbs',
+                'text_formats': 'mypractice.templatetags.text_formats',
             },
         },
     },
@@ -143,9 +143,6 @@ django_heroku.settings(locals())
 # Login/Logout Redirects
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
-
-# Phone Number Region
-PHONENUMBER_DEFAULT_REGION = 'US'
 
 # Celery Configuration
 CELERY_BROKER_URL = os.environ.get('CLOUDAMQP_URL')

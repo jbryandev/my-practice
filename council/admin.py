@@ -6,8 +6,6 @@ from django.forms import ModelChoiceField, ModelMultipleChoiceField
 from .models import Agency, Department, Agenda, Crawler, Category, \
     Highlight, Keyphrase
 
-# Register your models here.
-
 class AgencyAdmin(admin.ModelAdmin):
     """ Admin model for Agency class """
     list_display = ('agency_name', 'date_added')

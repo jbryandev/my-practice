@@ -1,11 +1,11 @@
 <!-- templates/detail.html -->
 {% extends 'base.html' %}
-{% load project_extras %}
 
 {% block title %} - Project Detail{% endblock %}
 
+{% load breadcrumbs text_formats %}
+
 {% block content %}
-{% load breadcrumbs %}
 {% block breadcrumbs %}
     {% clear_breadcrumbs %}
     {% breadcrumb "Home" "home" %}
@@ -17,25 +17,77 @@
 <!-- Project Title -->
 <h2>{{ project.project_name }}</h2>
 <hr></hr>
+
 <!-- Project Details -->
-<ul>
-    <li><strong>Location: </strong>{{ project.project_location }}</li>
-    <li><strong>Project Number: </strong>{{ project.project_number }}</li>
-    <li><strong>Project Manager: </strong>{{ project.project_manager }}</li>
-    <li><strong>Client Name: </strong>{{ project.client_name }}</li>
-    {% if project.client_contact %}<li><strong>Client Contact: </strong>{{ project.client_contact }}</li>{% endif %}
-    {% if project.client_phone %}<li><strong>Client Phone: </strong>{{ project.client_phone }}</li>{% endif %}
-    {% if project.client_email %}<li><strong>Client Email: </strong>{{ project.client_email }}</li>{% endif %}
-    {% if project.des_start_date %}<li><strong>Design Start: </strong>{{ project.des_start_date }}</li>{% endif %}
-    {% if project.des_end_date %}<li><strong>Design End: </strong>{{ project.des_end_date }}</li>{% endif %}
-    {% if project.con_start_date %}<li><strong>Construction Start: </strong>{{ project.con_start_date }}</li>{% endif %}
-    {% if project.con_end_date %}<li><strong>Construction End: </strong>{{ project.con_end_date }}</li>{% endif %}
-    {% if project.con_cost %}<li><strong>Construction Cost: </strong>{{ project.con_cost }}</li>{% endif %}
-</ul>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="card border-light mb-3">
+            <h5 class="card-header">Project Data</h5>
+            <div class="card-body">
+                <table>
+                    <td style="width: 55%;">
+                        <strong>Location: </strong><br>
+                        <strong>Project Number: </strong><br>
+                        <strong>Project Manager: </strong><br>
+                        <strong>Client: </strong><br>
+                        <strong>Client Contact: </strong><br>
+                        <strong>Client Phone: </strong><br>
+                        <strong>Client Email: </strong><br>
+                    </td>
+                    <td>
+                        {{ project.project_location }}<br>
+                        {{ project.project_number }}<br>
+                        {{ project.project_manager }}<br>
+                        {{ project.client_name }}<br>
+                        {{ project.client_contact }}<br>
+                        {{ project.client_phone|phone }}<br>
+                        {{ project.client_email }}<br>
+                    </td>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card border-light mb-3">
+            <h5 class="card-header">Design & Construction</h5>
+            <div class="card-body">
+                <table>
+                    <td style="width: 65%;">
+                        <strong>Design Start: </strong><br>
+                        <strong>Design End: </strong><br>
+                        <strong>Design Fee: </strong><br>
+                        <strong>Construction Start: </strong><br>
+                        <strong>Construction End: </strong><br>
+                        <strong>Construction Cost: </strong><br>
+                    </td>
+                    <td>
+                        {{ project.des_start_date|date:"F d, Y" }}<br>
+                        {{ project.des_end_date|date:"F d, Y" }}<br>
+                        {{ project.des_fee|currency }}<br>
+                        {{ project.con_start_date|date:"F d, Y" }}<br>
+                        {{ project.con_end_date|date:"F d, Y" }}<br>
+                        {{ project.con_cost|currency }}<br>
+                    </td>
+                </table>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Project Writeup Section -->
-{% if project.project_writeup %}
-    <hr></hr>
-    <strong>Project Writeup:</strong>
-    <p>{{ project.project_writeup|linebreaks }}</p>
-{% endif %}
+{% with project.writeups.all as writeups %}
+    {% if writeups %}
+    <div class="card border-light mb-3">
+        <h5 class="card-header">Project Writeups</h5>
+        <div class="card-body">
+            {% for writeup in writeups %}
+            <p>{% if writeup.focus %}<span class="badge badge-danger">{{ writeup.focus }}</span></p>{% endif %}
+            <p>{{ writeup.project_writeup|linebreaks }}</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+{% endwith %}
 {% endblock %}
