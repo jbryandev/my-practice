@@ -48,12 +48,15 @@
             }
             function customProgress(progressBarElement, progressBarMessageElement, progress) {
                 progressBarElement.style.backgroundColor = '#68a9ef';
-                progressBarElement.style.width = progress.percent + "%";
-                var description = progress.description || "";
-                progressBarMessageElement.innerHTML = description;
+                if (progress.description != undefined) {
+                    progressBarElement.style.width = progress.percent + "%";
+                    var description = progress.description;
+                    progressBarMessageElement.innerHTML = description;
+                }
             }
             function customSuccess(progressBarElement, progressBarMessageElement) {
                 progressBarElement.style.backgroundColor = '#76ce60';
+                progressBarElement.style.width = "100%";
                 progressBarMessageElement.innerHTML = "Fetching complete. Returning to department detail page...";
                 
             }
