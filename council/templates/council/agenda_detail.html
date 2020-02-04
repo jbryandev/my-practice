@@ -68,7 +68,10 @@
                 CeleryProgressBar.initProgressBar(
                     progressUrl,
                     {
-
+                        onProgress: customProgress,
+                        onSuccess: customSuccess,
+                        onError: customError,
+                        onResult: customResult
                     });
             });
         </script>
