@@ -8,7 +8,7 @@
 {% load breadcrumbs %}
 {% block breadcrumbs %}
     {% clear_breadcrumbs %}
-    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "My Practice" "home" %}
     {% breadcrumb "Projects" "projects:index" %}
 {% endblock %}
 {% render_breadcrumbs %}
@@ -17,6 +17,7 @@
 {% if project_list %}
     {% render_table table %}
 {% else %}
+    <hr>
     <p>No projects have been added.</p>
 {% endif %}
 {% endblock %}

@@ -7,19 +7,25 @@
 {% load breadcrumbs %}
 {% block breadcrumbs %}
     {% clear_breadcrumbs %}
-    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "My Practice" "home" %}
     {% breadcrumb "Council Insights" "council:index" %}
 {% endblock %}
 {% render_breadcrumbs %}
+
 <h2>Council Insights</h2>
+
 <hr></hr>
-{% if agency_list %}
-    <ul>
-        {% for agency in agency_list %}
-            <li><a href="{% url 'council:agency-detail' agency.id %}">{{ agency.agency_name }}</a></li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No agencies have been added to track yet.</p>
-{% endif %}
+
+<div class="card border-light mb-3">
+    <h5 class="card-header">Agencies</h5>
+    <div class="card-body">
+    {% if agency_list %}
+        <div class="list-group">
+            {% for agency in agency_list %}
+            <a class="list-group-item list-group-item-action" href="{% url 'council:agency-detail' agency.id %}">{{ agency.agency_name }}</a>
+            {% endfor %}
+        </div>
+    {% else %}No agencies have been added to track yet.
+    {% endif %}
+    </div>
 {% endblock %}

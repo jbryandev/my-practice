@@ -7,7 +7,7 @@
 {% block content %}
 {% load breadcrumbs %}
 {% block breadcrumbs %}
-    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "My Practice" "home" %}
     {% breadcrumb "Council Insights" "council:index" %}
     {% breadcrumb department.agency "council:agency-detail" department.agency.id %}
     {% breadcrumb department "council:department-detail" department.id %}
@@ -20,72 +20,76 @@
 <hr></hr>
 
 {% if department.meeting_info %}
-    <p>{{ department.meeting_info|linebreaks }}</p>
-{% endif %}
-
-{% if messages %}
-<!-- Message display -->
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
-    {% endfor %}
-{% endif %}
-
-{% if task_id %}
-<!-- Progress bar -->
-    {% load static %}
-    <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
-    <p><div class='progress' style="height: 20px;">
-        <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+<!-- Meeting information -->
+<div class="card border-light mb-3">
+    <h5 class="card-header">Meeting Information</h5>
+    <div class="card-body">
+        {{ department.meeting_info|linebreaks }}
     </div>
-    <div id="progress-bar-message">Connecting to City website...</div>
-    <div id="celery-result"></div></p>
-    <script>
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        function customProgress(progressBarElement, progressBarMessageElement, progress) {
-            progressBarElement.style.backgroundColor = '#68a9ef';
-            progressBarElement.style.width = progress.percent + "%";
-            var description = progress.description || "";
-            progressBarMessageElement.innerHTML = description;
-        }
-        function customSuccess(progressBarElement, progressBarMessageElement) {
-            progressBarElement.style.backgroundColor = '#76ce60';
-            progressBarMessageElement.innerHTML = "Fetching complete. Returning to department detail page...";
-            
-        }
-        function customError(progressBarElement, progressBarMessageElement) {
-            progressBarElement.style.backgroundColor = '#dc4f63';
-            progressBarMessageElement.innerHTML = "Unable to fetch agendas. An exception was raised during the process.";
-        }
-        async function customResult(resultElement, result) {
-            await sleep(3000);
-            window.location.replace("{% url 'council:department-detail' department.id %}");
-        }
-        document.addEventListener("DOMContentLoaded", function () {
-            var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
-            CeleryProgressBar.initProgressBar(
-                progressUrl,
-                {
-                    onProgress: customProgress,
-                    onSuccess: customSuccess,
-                    onError: customError,
-                    onResult: customResult
-                });
-        });
-    </script>
+</div>
 {% endif %}
 
 <!-- List agendas -->
-<strong>Stored Agendas:</strong>
-{% if department.agendas.all.exists %}
-    <ul>
-        {% for agenda in department.agendas.all %}
-            <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }}</a></li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No agendas have been added for this department yet.</p>
-{% endif %}
+<div class="card border-light mb-3">
+    <h5 class="card-header">Agendas</h5>
+    <div class="card-body">
+        {% if task_id %}
+        <!-- Progress bar -->
+        {% load static %}
+        <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+        <div class='progress' style="height: 20px;">
+            <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+        </div>
+        <div id="progress-bar-message">Connecting to City website...</div>
+        <div class="mb-3" id="celery-result"></div>
+        <script>
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            function customProgress(progressBarElement, progressBarMessageElement, progress) {
+                progressBarElement.style.backgroundColor = '#68a9ef';
+                progressBarElement.style.width = progress.percent + "%";
+                var description = progress.description || "";
+                progressBarMessageElement.innerHTML = description;
+            }
+            function customSuccess(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#76ce60';
+                progressBarMessageElement.innerHTML = "Fetching complete. Returning to department detail page...";
+                
+            }
+            function customError(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#dc4f63';
+                progressBarMessageElement.innerHTML = "Unable to fetch agendas. An exception was raised during the process.";
+            }
+            async function customResult(resultElement, result) {
+                await sleep(3000);
+                window.location.replace("{% url 'council:department-detail' department.id %}");
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                CeleryProgressBar.initProgressBar(
+                    progressUrl,
+                    {
+                        onProgress: customProgress,
+                        onSuccess: customSuccess,
+                        onError: customError,
+                        onResult: customResult
+                    });
+            });
+        </script>
+        {% endif %}
+        {% if department.agendas.all.exists %}
+        <div class="list-group">
+            {% for agenda in department.agendas.all %}
+                {% if agenda.active %}
+                <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
+                    {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}No agendas have been added for this department yet.
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}

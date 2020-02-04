@@ -6,23 +6,30 @@
 {% block content %}
 {% load breadcrumbs %}
 {% block breadcrumbs %}
-    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "My Practice" "home" %}
     {% breadcrumb "Council Insights" "council:index" %}
     {% breadcrumb agency "council:agency-detail" agency.id %}
 {% endblock %}
 {% render_breadcrumbs %}
+
 <!-- Agency name for page heading -->
 <h2>{{ agency.agency_name }}</h2>
+
 <hr></hr>
+
 <!-- List departments -->
-{% if agency.departments.all.exists %}
-    <ul>
-        {% for department in agency.departments.all %}
-            <li><a href="{% url 'council:department-detail' department.id %}">{{ department.department_name }}</a></li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No departments have been added to this agency yet.</p>
-{% endif %}
+<div class="card border-light mb-3">
+    <h5 class="card-header">Departments</h5>
+    <div class="card-body">
+    {% if agency.departments.all.exists %}
+        <div class="list-group">
+            {% for department in agency.departments.all %}
+            <a class="list-group-item list-group-item-action" href="{% url 'council:department-detail' department.id %}">{{ department.department_name }}</a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No departments have been added to this agency yet.</p>
+    {% endif %}
+    </div>
 
 {% endblock %}

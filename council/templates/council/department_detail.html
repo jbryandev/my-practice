@@ -7,7 +7,7 @@
 {% block content %}
 {% load breadcrumbs %}
 {% block breadcrumbs %}
-    {% breadcrumb "Home" "home" %}
+    {% breadcrumb "My Practice" "home" %}
     {% breadcrumb "Council Insights" "council:index" %}
     {% breadcrumb department.agency "council:agency-detail" department.agency.id %}
     {% breadcrumb department "council:department-detail" department.id %}
@@ -20,34 +20,38 @@
 <hr></hr>
 
 {% if department.meeting_info %}
-    <p>{{ department.meeting_info|linebreaks }}</p>
-{% endif %}
-
-{% if department.agendas_url %}
-    <p><a class="btn btn-primary" href="{{ department.agendas_url }}" role="button" target="_blank">City Website</a>
-        <a class="btn btn-danger" href="{% url 'council:fetch-agendas' department.id %}" role="button">Fetch New Agendas</a></p>
+<!-- Meeting information -->
+<div class="card border-light mb-3">
+    <h5 class="card-header">Meeting Information</h5>
+    <div class="card-body">
+        {{ department.meeting_info|linebreaks }}
+    </div>
+</div>
 {% endif %}
 
 <!-- List agendas -->
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>
-    {% endfor %}
-{% endif %}
-<strong>Stored Agendas:</strong>
-{% if department.agendas.all.exists %}
-    <ul>
-        {% for agenda in department.agendas.all %}
-            {% if agenda.active %}
-            <li><a href="{% url 'council:agenda-detail' agenda.id %}">
-                {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }}</a>
-                {% if agenda.is_new %}<span class="badge badge-primary">New</span>{% endif %}
-            </li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No agendas have been added for this department yet.</p>
-{% endif %}
+<div class="card border-light mb-3">
+    <h5 class="card-header">Agendas
+        {% if department.agendas_url %}
+        <small class="text-muted" style="float: right;"><a href="{{ department.agendas_url }}" target="_blank">City Website</a> | 
+            <a href="{% url 'council:fetch-agendas' department.id %}">Fetch New Agendas</a>
+        </small>
+        {% endif %}
+    </h5>
+        
+    <div class="card-body">
+        {% if department.agendas.all.exists %}
+        <div class="list-group">
+            {% for agenda in department.agendas.all %}
+                {% if agenda.active %}
+                <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
+                    {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}No agendas have been added for this department yet.
+        {% endif %}
+    </div>
+</div>
 
 {% endblock %}
