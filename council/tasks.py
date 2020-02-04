@@ -12,16 +12,13 @@ def convert_to_pdf(self, agenda_id):
     """ Convert agenda to PDF in the background using celery """
     progress_recorder = ProgressRecorder(self)
     progress_recorder.set_progress(0, 15, description="Attempting to connect...")
-    time.sleep(2)
     agenda = Agenda.objects.get(pk=agenda_id)
     agenda_url = agenda.agenda_url
-    progress_recorder.set_progress(7, 15, description="Converting PDF...")
-    time.sleep(2)
-    #agenda.agenda_text = convert_pdf(agenda_url, progress_recorder)
+    agenda.agenda_text = convert_pdf(agenda_url, progress_recorder)
     progress_recorder.set_progress(
         14, 15, description="PDF conversion complete. Saving to database...")
     time.sleep(2)
-    #agenda.save()
+    agenda.save()
 
     return "PDF conversion complete."
 
