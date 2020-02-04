@@ -45,19 +45,16 @@
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
             function customProgress(progressBarElement, progressBarMessageElement, progress) {
-                console.log("customProgress function called");
-                console.log(progress);
                 progressBarElement.style.backgroundColor = '#68a9ef';
                 if (progress.description != undefined) {
                     progressBarElement.style.width = progress.percent + "%";
                     var description = progress.description;
-                    console.log("Description: " + description);
-                    console.log("Percent: " + progress.percent + "%");
                     progressBarMessageElement.innerHTML = description;
                 }
             }
             function customSuccess(progressBarElement, progressBarMessageElement) {
                 progressBarElement.style.backgroundColor = '#76ce60';
+                progressBarElement.style.width = "100%";
                 progressBarMessageElement.innerHTML = "Complete. Returning to agenda detail page...";
                 
             }
