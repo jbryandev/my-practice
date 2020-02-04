@@ -117,17 +117,17 @@ def edmond_crawler(calling_department, progress_recorder):
 def el_reno_crawler(calling_department, progress_recorder):
     """ El Reno Crawler function. """
     progress_recorder.set_progress(0, 15, description="Connecting to City website...")
-    #time.sleep(2)
+    time.sleep(2)
     agendas_url = calling_department.agendas_url
 
     progress_recorder.set_progress(
         1, 15, description="Connection succeeded. Getting agenda list...")
-    #time.sleep(2)
+    time.sleep(2)
     agendas_list = el_reno.retrieve_agendas(agendas_url)
 
     progress_recorder.set_progress(
         2, 15, description="Selecting most recent agendas...")
-    #time.sleep(2)
+    time.sleep(2)
     recent_agendas = el_reno.get_most_recent_agendas(agendas_list)
 
     i = 1

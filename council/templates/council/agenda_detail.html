@@ -45,9 +45,11 @@
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
             function customProgress(progressBarElement, progressBarMessageElement, progress) {
+                console.log("customProgress function called");
                 progressBarElement.style.backgroundColor = '#68a9ef';
                 progressBarElement.style.width = progress.percent + "%";
                 var description = progress.description || "";
+                console.log("Description: " + description);
                 progressBarMessageElement.innerHTML = description;
             }
             function customSuccess(progressBarElement, progressBarMessageElement) {
@@ -64,7 +66,9 @@
                 window.location.replace("{% url 'council:agenda-detail' agenda.id %}");
             }
             document.addEventListener("DOMContentLoaded", function () {
+                console.log("Adding event listener...");
                 var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                console.log(progressUrl);
                 CeleryProgressBar.initProgressBar(
                     progressUrl,
                     {
