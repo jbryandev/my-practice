@@ -156,7 +156,7 @@ def el_reno_crawler(calling_department, progress_recorder):
 
     progress_desc = "Finished processing. Found " + str(j) + " new agendas."
     progress_recorder.set_progress(14, 15, description=progress_desc)
-    time.sleep(5)
+    time.sleep(2)
 
 def lawton_crawler(calling_department, progress_recorder):
     """ Lawton Crawler function. """
