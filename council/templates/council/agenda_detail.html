@@ -46,8 +46,9 @@
             }
             function customProgress(progressBarElement, progressBarMessageElement, progress) {
                 console.log("customProgress function called");
+                console.log(progress);
                 progressBarElement.style.backgroundColor = '#68a9ef';
-                if progress {
+                if (progress) {
                     progressBarElement.style.width = progress.percent + "%";
                     var description = progress.description;
                     console.log("Description: " + description);
