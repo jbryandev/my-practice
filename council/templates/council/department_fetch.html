@@ -15,7 +15,7 @@
 {% render_breadcrumbs %}
 
 <!-- Department and agency name for page heading -->
-<h2>{{ department.agency.agency_name }} - {{ department.department_name }}</h2>
+<h2>{{ department.department_name }} <small class="text-muted">{{ department.agency.agency_name }}</small></h2>
 
 <hr></hr>
 
@@ -57,7 +57,7 @@
             function customSuccess(progressBarElement, progressBarMessageElement) {
                 progressBarElement.style.backgroundColor = '#76ce60';
                 progressBarElement.style.width = "100%";
-                progressBarMessageElement.innerHTML = "Fetching complete. Returning to department detail page...";
+                progressBarMessageElement.innerHTML = "Fetching complete. Reloading agenda list...";
             }
             function customError(progressBarElement, progressBarMessageElement) {
                 progressBarElement.style.backgroundColor = '#dc4f63';

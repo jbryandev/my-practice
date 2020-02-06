@@ -15,7 +15,7 @@
 {% render_breadcrumbs %}
 
 <!-- Department and agency name for page heading -->
-<h2>{{ department.agency.agency_name }} - {{ department.department_name }}</h2>
+<h2>{{ department.department_name }} <small class="text-muted">{{ department.agency.agency_name }}</small></h2>
 
 <hr></hr>
 
@@ -33,13 +33,61 @@
 <div class="card border-light mb-3">
     <h5 class="card-header">Agendas
         {% if department.agendas_url %}
-        <small class="text-muted" style="float: right;"><a href="{{ department.agendas_url }}" target="_blank">City Website</a> | 
+        <small class="mt-1 text-muted" style="float: right;"><a href="{{ department.agendas_url }}" target="_blank">City Website</a> | 
             <a href="{% url 'council:fetch-agendas' department.id %}">Fetch New Agendas</a>
         </small>
         {% endif %}
     </h5>
         
     <div class="card-body">
+        {% if task_id %}
+        <!-- Progress bar -->
+        {% load static %}
+        <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+        <div class='progress' style="height: 20px;">
+            <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+        </div>
+        <div id="progress-bar-message">Connecting to City website...</div>
+        <div class="mb-3" id="celery-result"></div>
+        <script>
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            function customProgress(progressBarElement, progressBarMessageElement, progress) {
+                progressBarElement.style.backgroundColor = '#68a9ef';
+                if (progress.description != undefined) {
+                    progressBarElement.style.width = progress.percent + "%";
+                    var description = progress.description;
+                    progressBarMessageElement.innerHTML = description;
+                }
+            }
+            function customSuccess(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#76ce60';
+                progressBarElement.style.width = "100%";
+                progressBarMessageElement.innerHTML = "Fetching complete. Reloading agenda list...";
+            }
+            function customError(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#dc4f63';
+                progressBarMessageElement.innerHTML = "Unable to fetch agendas. An exception was raised during the process.";
+            }
+            async function customResult(resultElement, result) {
+                await sleep(3000);
+                window.location.replace("{% url 'council:department-detail' department.id %}");
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                CeleryProgressBar.initProgressBar(
+                    progressUrl,
+                    {
+                        onProgress: customProgress,
+                        onSuccess: customSuccess,
+                        onError: customError,
+                        onResult: customResult
+                    });
+            });
+        </script>
+        {% endif %}
+
         {% if department.agendas.all.exists %}
         <div class="list-group">
             {% for agenda in department.agendas.all %}

@@ -21,67 +21,87 @@
 
 <hr></hr>
 
-{% if agenda.pdf_link %}
-<p><a href="{{ agenda.pdf_link }}" target="_blank">Download PDF</a></p>
-{% endif %}
+<!-- Highlights -->
+<div class="card border-light mb-3">
+    <h5 class="card-header">Highlights</h5>
+    <div class="card-body">
+        {% if agenda.highlights.all %}
+        {% for highlight in agenda.highlights.all %}
+            <p>{{ highlight }}</p>
+        {% endfor %}
+        {% else %}
+            <p>No items of note found in this agenda.</p>
+        {% endif %}
+    </div>
+</div>
 
-{% if agenda.agenda_text %}
-    <p>
-    {% autoescape off %}
-    {{ agenda.agenda_text|highlight:agenda.id|linebreaks }}
-    {% endautoescape %}
-    </p>
-{% else %}
-    {% if task_id %}
-        {% load static %}
-        <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
-        <div class='progress' style="height: 20px;">
-            <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
-        </div>
-        <div id="progress-bar-message">Attempting to connect...</div>
-        <div id="celery-result"></div>
-        <script>
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-            function customProgress(progressBarElement, progressBarMessageElement, progress) {
-                progressBarElement.style.backgroundColor = '#68a9ef';
-                if (progress.description != undefined) {
-                    progressBarElement.style.width = progress.percent + "%";
-                    var description = progress.description;
-                    progressBarMessageElement.innerHTML = description;
-                }
-            }
-            function customSuccess(progressBarElement, progressBarMessageElement) {
-                progressBarElement.style.backgroundColor = '#76ce60';
-                progressBarElement.style.width = "100%";
-                progressBarMessageElement.innerHTML = "Complete. Returning to agenda detail page...";
-                
-            }
-            function customError(progressBarElement, progressBarMessageElement) {
-                progressBarElement.style.backgroundColor = '#dc4f63';
-                progressBarMessageElement.innerHTML = "Unable to convert PDF. An exception was raised during the conversion process.";
-            }
-            async function customResult(resultElement, result) {
-                await sleep(3000);
-                window.location.replace("{% url 'council:agenda-detail' agenda.id %}");
-            }
-            document.addEventListener("DOMContentLoaded", function () {
-                var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
-                CeleryProgressBar.initProgressBar(
-                    progressUrl,
-                    {
-                        onProgress: customProgress,
-                        onSuccess: customSuccess,
-                        onError: customError,
-                        onResult: customResult
-                    });
-            });
-        </script>
+<!-- Agenda Content -->
+<div class="card border-light mb-3">
+    <h5 class="card-header">Agenda Content
+        {% if agenda.pdf_link %}
+        <small class="mt-1 text-muted" style="float: right;"><a href="{{ agenda.pdf_link }}" target="_blank">Download PDF</a></small>
+        {% endif %}
+    </h5>
+    <div class="card-body">
+    {% if agenda.agenda_text %}
+        <p>
+        {% autoescape off %}
+        {{ agenda.agenda_text|highlight:agenda.id|linebreaks }}
+        {% endautoescape %}
+        </p>
     {% else %}
-        <p>Agenda text has not yet been generated. Click <a href="{% url 'council:convert-pdf' agenda.id %}">here</a>
-            to convert the agenda PDF into text. Note: this may take a few minutes</p>
+        {% if task_id %}
+            {% load static %}
+            <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+            <div class='progress' style="height: 20px;">
+                <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+            </div>
+            <div id="progress-bar-message">Attempting to connect...</div>
+            <div id="celery-result"></div>
+            <script>
+                function sleep(ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                }
+                function customProgress(progressBarElement, progressBarMessageElement, progress) {
+                    progressBarElement.style.backgroundColor = '#68a9ef';
+                    if (progress.description != undefined) {
+                        progressBarElement.style.width = progress.percent + "%";
+                        var description = progress.description;
+                        progressBarMessageElement.innerHTML = description;
+                    }
+                }
+                function customSuccess(progressBarElement, progressBarMessageElement) {
+                    progressBarElement.style.backgroundColor = '#76ce60';
+                    progressBarElement.style.width = "100%";
+                    progressBarMessageElement.innerHTML = "Complete. Refreshing agenda content...";
+                    
+                }
+                function customError(progressBarElement, progressBarMessageElement) {
+                    progressBarElement.style.backgroundColor = '#dc4f63';
+                    progressBarMessageElement.innerHTML = "Unable to convert PDF. An exception was raised during the conversion process.";
+                }
+                async function customResult(resultElement, result) {
+                    await sleep(3000);
+                    window.location.replace("{% url 'council:agenda-detail' agenda.id %}");
+                }
+                document.addEventListener("DOMContentLoaded", function () {
+                    var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                    CeleryProgressBar.initProgressBar(
+                        progressUrl,
+                        {
+                            onProgress: customProgress,
+                            onSuccess: customSuccess,
+                            onError: customError,
+                            onResult: customResult
+                        });
+                });
+            </script>
+        {% else %}
+            <p>Agenda text has not yet been generated. Click <a href="{% url 'council:convert-pdf' agenda.id %}">here</a>
+                to convert the agenda PDF into text. Note: this may take a few minutes</p>
+        {% endif %}
     {% endif %}
-{% endif %}
+    </div>
+</div>
 
 {% endblock %}

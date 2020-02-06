@@ -4,17 +4,26 @@
 {% block title %}{% endblock %}
 
 {% block content %}
+
 <h2>My Practice</h2>
+
 <hr></hr>
+
 {% if user.is_authenticated %}
-    <ul>
-        <li><a href="{% url 'projects:index' %}">Projects</a></li>
-        <li>People</li>
-        <li>Meetings</li>
-        <li><a href="{% url 'council:index' %}">Council Insights</a></li>
-        <li>Work Planner</li>
-        <li>Continuing Education</li>
-    </ul>
+<div class="card border-light mb-3">
+    <h5 class="card-header">Quick Links</h5>
+    <div class="card-body">
+        <div class="list-group">
+            <a class="list-group-item list-group-item-action" href="{% url 'projects:index' %}"><strong>Projects</strong></a>
+            <a class="list-group-item disabled list-group-item-action" href="#">People</a>
+            <a class="list-group-item disabled list-group-item-action" href="#">Meetings</a>
+            <a class="list-group-item list-group-item-action" href="{% url 'council:index' %}"><strong>Council Insights</strong></a>
+            <a class="list-group-item disabled list-group-item-action" href="#">Work Planner</a>
+            <a class="list-group-item disabled list-group-item-action" href="#">Continuing Education</a>
+        </div>
+    </div>
+</div>
+    
 {% else %}
     <p>You are not logged in.</p>
     <a href="{% url 'login' %}">Login</a>

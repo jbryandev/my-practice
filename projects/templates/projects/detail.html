@@ -24,27 +24,13 @@
         <div class="card border-light mb-3">
             <h5 class="card-header">Project Data</h5>
             <div class="card-body">
-                <table>
-                    <td style="width: 55%;">
-                        <strong>Location: </strong><br>
-                        <strong>Project Number: </strong><br>
-                        <strong>Project Manager: </strong><br>
-                        <strong>Client: </strong><br>
-                        <strong>Client Contact: </strong><br>
-                        <strong>Client Phone: </strong><br>
-                        <strong>Client Email: </strong><br>
-                    </td>
-                    <td>
-                        {{ project.project_location }}<br>
-                        {{ project.project_number }}<br>
-                        {{ project.project_manager }}<br>
-                        {{ project.client_name }}<br>
-                        {{ project.client_contact }}<br>
-                        {{ project.client_phone|phone }}<br>
-                        {{ project.client_email }}<br>
-                    </td>
-                </table>
-                
+                <strong>Location:</strong> {{ project.project_location }}<br>
+                <strong>Project Number:</strong> {{ project.project_number }}<br>
+                <strong>Project Manager: </strong> {{ project.project_manager }}<br>
+                <strong>Client: </strong> {{ project.client_name }}<br>
+                <strong>Client Contact: </strong> {{ project.client_contact }}<br>
+                <strong>Client Phone: </strong> {{ project.client_phone|phone }}<br>
+                <strong>Client Email: </strong> {{ project.client_email }}
             </div>
         </div>
     </div>
@@ -52,25 +38,12 @@
         <div class="card border-light mb-3">
             <h5 class="card-header">Design & Construction</h5>
             <div class="card-body">
-                <table>
-                    <td style="width: 65%;">
-                        <strong>Design Start: </strong><br>
-                        <strong>Design End: </strong><br>
-                        <strong>Design Fee: </strong><br>
-                        <strong>Construction Start: </strong><br>
-                        <strong>Construction End: </strong><br>
-                        <strong>Construction Cost: </strong><br>
-                    </td>
-                    <td>
-                        {{ project.des_start_date|date:"F d, Y" }}<br>
-                        {{ project.des_end_date|date:"F d, Y" }}<br>
-                        {{ project.des_fee|currency }}<br>
-                        {{ project.con_start_date|date:"F d, Y" }}<br>
-                        {{ project.con_end_date|date:"F d, Y" }}<br>
-                        {{ project.con_cost|currency }}<br>
-                    </td>
-                </table>
-                <br>
+                <strong>Design Start:</strong> {{ project.des_start_date|date:"F d, Y" }}<br>
+                <strong>Design End:</strong> {{ project.des_end_date|date:"F d, Y" }}<br>
+                <strong>Design Fee:</strong> {{ project.des_fee|currency }}<br>
+                <strong>Construction Start:</strong> {{ project.con_start_date|date:"F d, Y" }}<br>
+                <strong>Construction End:</strong> {{ project.con_end_date|date:"F d, Y" }}<br>
+                <strong>Construction Cost:</strong> {{ project.con_cost|currency }}
             </div>
         </div>
     </div>

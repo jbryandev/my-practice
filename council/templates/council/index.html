@@ -17,6 +17,20 @@
 <hr></hr>
 
 <div class="card border-light mb-3">
+    <h5 class="card-header">Meetings This Week</h5>
+    <div class="card-body">
+        {% if this_weeks_agendas %}
+        <ul>
+            {% for agenda in this_weeks_agendas %}
+            <li><a href="{% url 'council:agenda-detail' agenda.id %}">{{ agenda.agenda_date }} - {{ agenda.department.agency }} - {{ agenda.department }}</a></li>
+            {% endfor %}
+        </ul>
+        {% else %}No tracked meetings this week.
+        {% endif %}
+    </div>
+</div>
+
+<div class="card border-light mb-3">
     <h5 class="card-header">Agencies</h5>
     <div class="card-body">
     {% if agency_list %}

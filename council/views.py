@@ -1,8 +1,6 @@
 """ Views for the application """
-#from django.shortcuts import get_object_or_404, HttpResponseRedirect
-#from django.urls import reverse
+from datetime import date, timedelta
 from django.views import generic
-#from .crawler import exec_crawler
 from .models import Agency, Department, Agenda
 from .tasks import convert_to_pdf, fetch_agendas
 
@@ -14,6 +12,16 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         return Agency.objects.order_by('agency_name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        current_date = date.today()
+        start = current_date - timedelta(days=current_date.weekday())
+        end = start + timedelta(days=4)
+        this_weeks_agendas = Agenda.objects.filter(
+            agenda_date__range=(start, end)).order_by('agenda_date')
+        context['this_weeks_agendas'] = this_weeks_agendas
+        return context
 
 class AgencyView(generic.DetailView):
     """ View for the agency detail page """
@@ -28,7 +36,7 @@ class DepartmentView(generic.DetailView):
 class DepartmentFetchView(generic.DetailView):
     """ View for the department fetch agendas page """
     model = Department
-    template_name = 'council/department_fetch.html'
+    template_name = 'council/department_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
