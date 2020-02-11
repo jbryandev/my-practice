@@ -89,17 +89,14 @@
         {% endif %}
 
         {% if department.agendas.all.exists %}
-        <ul class="list-group">
+        <div class="list-group">
             {% for agenda in department.agendas.all %}
                 {% if agenda.active %}
-                <li class="list-group-item d-flex justify-content-between">
-                    <a href="{% url 'council:agenda-detail' agenda.id %}">
-                        {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
-                    <div><a href="#">Hide</a> | <a href="#">Delete</a></div>
-                </li>
+                <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
+                    {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
                 {% endif %}
             {% endfor %}
-        </ul>
+            </div>
         {% else %}No agendas have been added for this department yet.
         {% endif %}
     </div>

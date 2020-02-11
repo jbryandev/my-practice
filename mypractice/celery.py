@@ -2,6 +2,7 @@
 import os
 from celery import Celery
 from celery.schedules import crontab
+from django.core.mail import send_mail
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mypractice.settings')
 
@@ -25,12 +26,17 @@ def setup_periodic_tasks(sender, **kwargs):
     # Calls test('world') every 30 seconds
     #sender.add_periodic_task(30.0, test.s('world'), expires=10)
 
-    # Executes every Monday morning at 7:30 a.m.
+    # Executes at specified day and time.
     sender.add_periodic_task(
-        crontab(hour=17, minute=20, day_of_week=1),
-        test.s('Happy Mondays!'),
+        crontab(hour=14, minute=50, day_of_week=2),
+        test_email.s('Sending email...'),
     )
 
 @app.task
 def test(arg):
     print(arg)
+
+@app.task
+def test_email(arg):
+    print(arg)
+    send_mail('Test email from crontab', 'This is only a test.', 'james.bryan.home@gmail.com', ['james.bryan@kimley-horn.com'])
