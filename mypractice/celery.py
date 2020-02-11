@@ -19,24 +19,29 @@ app.autodiscover_tasks()
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
+    """ Function that establishes periodic tasks to be run by celery """
 
-    # Calls test('hello') every 10 seconds.
-    #sender.add_periodic_task(10.0, test.s('hello'), name='add every 10')
-
-    # Calls test('world') every 30 seconds
-    #sender.add_periodic_task(30.0, test.s('world'), expires=10)
-
-    # Executes at specified day and time.
+    # Run fetch_agendas() for all departments every day at midnight
     sender.add_periodic_task(
-        crontab(hour=0, minute=0, day_of_week=3),
-        test_email.s('Sending crontab email...'),
+        crontab(hour=0, minute=0),
+        fetch_agendas.s(),
+        name='Fetch Agendas Crontab',
     )
 
 @app.task
-def test(arg):
-    print(arg)
+def fetch_agendas():
+    """ Function to run fetch_agendas() on regular intervals as a crontab """
+    from council.tasks import fetch_agendas as fetch
+    from council.models import Department
+    for department in Department.objects.all():
+        fetch.delay(department.id)
+        print("Beat Scheduled Task: Running fetch_agendas(" + str(department.id) + ")")
 
-@app.task
-def test_email(arg):
-    print(arg)
-    send_mail('Test email from crontab', 'This is a test of celery beat when heroku app is dormant.', 'council-insights@my-practice.herokuapp.com', ['james.bryan@kimley-horn.com'])
+    subject = "Council Insights: Crontab Run"
+    body = "The fetch_agendas() crontab was called successfully at midnight."
+    send_mail(
+        subject,
+        body,
+        'council-insights@my-practice.herokuapp.com',
+        ['james.bryan@kimley-horn.com']
+    )
