@@ -28,7 +28,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Executes at specified day and time.
     sender.add_periodic_task(
-        crontab(hour=14, minute=50, day_of_week=2),
+        crontab(hour=15, minute=8, day_of_week=2),
         test_email.s('Sending email...'),
     )
 
