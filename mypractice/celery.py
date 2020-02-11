@@ -28,8 +28,8 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Executes at specified day and time.
     sender.add_periodic_task(
-        crontab(hour=15, minute=15, day_of_week=2),
-        test_email.s('Sending email...'),
+        crontab(hour=0, minute=0, day_of_week=3),
+        test_email.s('Sending crontab email...'),
     )
 
 @app.task
@@ -39,4 +39,4 @@ def test(arg):
 @app.task
 def test_email(arg):
     print(arg)
-    send_mail('Test email from crontab', 'This is only a test.', 'james.bryan.home@gmail.com', ['james.bryan@kimley-horn.com'])
+    send_mail('Test email from crontab', 'This is a test of celery beat when heroku app is dormant.', 'council-insights@my-practice.herokuapp.com', ['james.bryan@kimley-horn.com'])
