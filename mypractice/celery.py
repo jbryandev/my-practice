@@ -22,11 +22,13 @@ def setup_periodic_tasks(sender, **kwargs):
     """ Function that establishes periodic tasks to be run by celery """
 
     # Run fetch_agendas() for all departments every day at midnight
+    """
     sender.add_periodic_task(
         crontab(hour=0, minute=0),
         fetch_agendas.s(),
         name='Fetch Agendas Crontab',
     )
+    """
 
 @app.task
 def fetch_agendas():

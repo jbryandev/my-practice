@@ -7,11 +7,93 @@ than using OCR to convert the PDF to text.
 Since all agendas are posted to the online system, this crawler can be
 used to handle any City department, as the extraction method will be
 the same.
+
+Edmond lists their agendas by month. Therefore, we don't need to worry about
+extracting agendas older than the current month.
 """
 import re
 import requests
 import dateutil.parser as dparser
 from bs4 import BeautifulSoup, SoupStrainer
+from ..modules.crawler_funcs import agenda_exists, set_progress
+
+def retrieve_agendas(department, progress_recorder):
+    """ This function scrapes agenda info from the City website. """
+
+    crawler_name = "Edmond"
+    print("--- {} AGENDA CRAWLER ---".format(crawler_name.upper()))
+
+    try:
+        # Set intial progress bar state and message
+        set_progress(progress_recorder, 0, 15, "Connecting to City website...", 2)
+
+        # Fetch website as response object
+        print("{}: Getting response object...".format(crawler_name))
+        response = requests.get(department.agendas_url, timeout=10)
+        set_progress(progress_recorder, 1, 15, \
+            "Connection succeeded. Getting current list of agendas...", 2)
+
+        # Extract HTML using BeautifulSoup
+        print("{}: Extracting HTML with BeautifulSoup...".format(crawler_name))
+        agendas_table = SoupStrainer("tbody", class_="nowrap smallText")
+        soup = BeautifulSoup(response.text, "html.parser", parse_only=agendas_table)
+        rows = soup.find_all("tr")
+        status = "Searching list for any new {} agendas...".format(department.department_name)
+        set_progress(progress_recorder, 2, 15, status, 2)
+
+        # Cycle through agenda list to find any new department agendas
+        # For any that are found, store them in a list for futher processing
+        print("{}: Looking for new {} agendas...".format(crawler_name, department.department_name))
+        agenda_list = []
+        for row in rows:
+            agenda_url = "http://agenda.edmondok.com:8085/{}".format(row.a["href"])
+            agenda_date = dparser.parse(row.a.text, fuzzy=True)
+            agenda_dept = row.find_all("td")[1].text
+            agenda = {
+                "agenda_url": agenda_url,
+                "agenda_date": agenda_date,
+                "agenda_dept": agenda_dept
+            }
+            # Check to see if agenda matches the department
+            # and doesn't already exist in the database
+            if agenda.get("agenda_dept").lower().strip() == \
+                department.department_name.lower().strip():
+                if not agenda_exists(agenda.get("agenda_url")):
+                    agenda_list.append(agenda)
+        status = "Found {} new agenda(s).".format(len(agenda_list))
+        print(status)
+        set_progress(progress_recorder, 3, 15, status, 2)
+
+        # For each new agenda, access its agenda detail page and extract the agenda HTML
+        i = 1
+        for agenda in agenda_list:
+            status = "Getting contents of agenda {} of {}...".format(i, len(agenda_list))
+            print(status)
+            set_progress(progress_recorder, i+4, len(agenda_list)+5, status, 2)
+            response = requests.get(agenda_url)
+            strainer = SoupStrainer("table", class_=" tableCollapsed")
+            soup = BeautifulSoup(response.text, "html.parser", parse_only=strainer)
+            header = soup.thead.find_all("tr")[len(soup.thead.find_all("tr"))-1].text.strip()
+            body = soup.tbody
+            rows = body.find_all("tr")
+            string_list = []
+            for row in rows:
+                if "." in row.text:
+                    col = row.find_all("td")
+                    if not col[0].text.strip() and not col[1].text.strip() and col[2].text.strip():
+                        string_list.append("<tr><td style=\"width: 10%\"></td><td style=\"width: 10%\"></td><td>{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                    elif not col[0].text.strip() and col[1].text.strip():
+                        string_list.append("<tr><td style=\"width: 10%\"></td><td colspan=\"2\">{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                    elif col[0].text.strip():
+                        string_list.append("<tr><td colspan=\"3\">{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+            body_text = "".join(string_list)
+            table_text = "<table>{}</table>".format(body_text)
+            i += 1
+
+    except Exception as error:
+        print(error)
+        #set_progress() to error state and provide error message/code
+
 
 def retrieve_current_agendas(agendas_url):
     """
