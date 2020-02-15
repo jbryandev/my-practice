@@ -15,7 +15,7 @@ import re
 import requests
 import dateutil.parser as dparser
 from bs4 import BeautifulSoup, SoupStrainer
-from ..modules.crawler_funcs import agenda_exists, set_progress
+from ..modules.crawler_helpers import agenda_exists, set_progress
 
 def retrieve_agendas(department, progress_recorder):
     """ This function scrapes agenda info from the City website. """
@@ -81,13 +81,13 @@ def retrieve_agendas(department, progress_recorder):
                 if "." in row.text:
                     col = row.find_all("td")
                     if not col[0].text.strip() and not col[1].text.strip() and col[2].text.strip():
-                        string_list.append("<tr><td style=\"width: 10%\"></td><td style=\"width: 10%\"></td><td>{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                        string_list.append("<tr><td style=\"width: 10%\"></td><td style=\"width: 10%\"></td><td>{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
                     elif not col[0].text.strip() and col[1].text.strip():
-                        string_list.append("<tr><td style=\"width: 10%\"></td><td colspan=\"2\">{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                        string_list.append("<tr><td style=\"width: 10%\"></td><td colspan=\"2\">{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
                     elif col[0].text.strip():
-                        string_list.append("<tr><td colspan=\"3\">{}</td></tr>\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                        string_list.append("<tr><td colspan=\"3\">{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
             body_text = "".join(string_list)
-            table_text = "<table>{}</table>".format(body_text)
+            table_text = "<table class=\">{}</table>".format(body_text)
             i += 1
 
     except Exception as error:
