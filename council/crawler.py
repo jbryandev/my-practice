@@ -32,7 +32,7 @@ def exec_crawler(crawler, calling_department, progress_recorder):
     """ Linking function between Crawler models and Crawler modules. """
 
     if crawler.crawler_name == "Edmond":
-        edmond_crawler(calling_department, progress_recorder)
+        edmond.get_new_agendas(calling_department, progress_recorder)
 
     elif crawler.crawler_name == "El Reno":
         el_reno_crawler(calling_department, progress_recorder)
@@ -54,65 +54,6 @@ def exec_crawler(crawler, calling_department, progress_recorder):
 
     elif crawler.crawler_name == "Tulsa":
         tulsa_crawler(calling_department, progress_recorder)
-
-def edmond_crawler(calling_department, progress_recorder):
-    """ Edmond Crawler function. """
-    progress_recorder.set_progress(0, 15, description="Connecting to City website...")
-    time.sleep(2)
-    agendas_url = calling_department.agendas_url
-    agenda_name = calling_department.department_name
-
-    progress_recorder.set_progress(
-        1, 15, description="Connection succeeded. Getting agenda list...")
-    time.sleep(2)
-    agenda_html = edmond.retrieve_current_agendas(agendas_url)
-
-    progress_recorder.set_progress(
-        2, 15, description="Searching for department-specific agendas...")
-    time.sleep(2)
-    specific_agendas = edmond.find_specific_agendas(agenda_html, agenda_name)
-
-    if specific_agendas:
-        progress_desc = "Found " + str(len(specific_agendas)) + " department agendas."
-        progress_recorder.set_progress(3, 15, description=progress_desc)
-        time.sleep(2)
-
-        i = 1
-        j = 0
-
-        for agenda in specific_agendas:
-            progress_desc = "Processing agenda " + str(i) + " of " \
-                + str(len(specific_agendas)) + "..."
-            progress_recorder.set_progress(i+3, len(specific_agendas)+4, description=progress_desc)
-            time.sleep(1)
-            agenda_url = agenda.get("agenda_url")
-            if not agenda_exists(agenda_url):
-                j += 1
-                parsed_agenda = edmond.get_agenda(agenda_url)
-                parsed_agenda.update(
-                    {
-                        "agenda_date": agenda.get("agenda_date"),
-                        "agenda_name": agenda_name
-                    }
-                )
-                new_agenda = Agenda(
-                    agenda_date=parsed_agenda.get("agenda_date"),
-                    agenda_title=parsed_agenda.get("agenda_name"),
-                    agenda_url=parsed_agenda.get("agenda_url"),
-                    agenda_text=parsed_agenda.get("agenda_text"),
-                    pdf_link=parsed_agenda.get("pdf_link"),
-                    date_added=datetime.now(tz=get_current_timezone()),
-                    department=calling_department
-                )
-                new_agenda.save()
-            i += 1
-        progress_desc = "Finished processing. Found " + str(j) + " new agendas."
-        progress_recorder.set_progress(14, 15, description=progress_desc)
-        time.sleep(2)
-    else:
-        progress_recorder.set_progress(
-            14, 15, description="Did not find any matching department agendas.")
-        time.sleep(2)
 
 def el_reno_crawler(calling_department, progress_recorder):
     """ El Reno Crawler function. """

@@ -11,144 +11,135 @@ the same.
 Edmond lists their agendas by month. Therefore, we don't need to worry about
 extracting agendas older than the current month.
 """
-import re
+from datetime import datetime
 import requests
 import dateutil.parser as dparser
+from django.utils.timezone import get_current_timezone
 from bs4 import BeautifulSoup, SoupStrainer
 from ..modules.crawler_helpers import agenda_exists, set_progress
+from ..models import Agenda
 
-def retrieve_agendas(department, progress_recorder):
-    """ This function scrapes agenda info from the City website. """
-
+def get_new_agendas(department, progress_recorder):
+    """
+    This method searches for new agendas for a given department and
+    saves whatever new agendas it finds to the database. It performs
+    a complete crawling operation that retrieves agendas, filters them
+    accordindingly, formats the data into agenda objects, and then saves
+    the new agenda objects to the datbase.
+    """
     crawler_name = "Edmond"
     print("--- {} AGENDA CRAWLER ---".format(crawler_name.upper()))
 
-    try:
-        # Set intial progress bar state and message
-        set_progress(progress_recorder, 0, 15, "Connecting to City website...", 2)
+    # Fetch agenda page as response object
+    print("{}: Getting response object...".format(crawler_name))
+    set_progress(progress_recorder, 0, 10, "Connecting to City website...", 2)
+    response = requests.get(department.agendas_url, timeout=10)
+    set_progress(progress_recorder, 1, 10, \
+        "Connection succeeded. Getting current list of agendas...", 2)
 
-        # Fetch website as response object
-        print("{}: Getting response object...".format(crawler_name))
-        response = requests.get(department.agendas_url, timeout=10)
-        set_progress(progress_recorder, 1, 15, \
-            "Connection succeeded. Getting current list of agendas...", 2)
-
-        # Extract HTML using BeautifulSoup
-        print("{}: Extracting HTML with BeautifulSoup...".format(crawler_name))
-        agendas_table = SoupStrainer("tbody", class_="nowrap smallText")
-        soup = BeautifulSoup(response.text, "html.parser", parse_only=agendas_table)
-        rows = soup.find_all("tr")
-        status = "Searching list for any new {} agendas...".format(department.department_name)
-        set_progress(progress_recorder, 2, 15, status, 2)
-
-        # Cycle through agenda list to find any new department agendas
-        # For any that are found, store them in a list for futher processing
-        print("{}: Looking for new {} agendas...".format(crawler_name, department.department_name))
-        agenda_list = []
-        for row in rows:
-            agenda_url = "http://agenda.edmondok.com:8085/{}".format(row.a["href"])
-            agenda_date = dparser.parse(row.a.text, fuzzy=True)
-            agenda_dept = row.find_all("td")[1].text
-            agenda = {
-                "agenda_url": agenda_url,
-                "agenda_date": agenda_date,
-                "agenda_dept": agenda_dept
-            }
-            # Check to see if agenda matches the department
-            # and doesn't already exist in the database
-            if agenda.get("agenda_dept").lower().strip() == \
-                department.department_name.lower().strip():
-                if not agenda_exists(agenda.get("agenda_url")):
-                    agenda_list.append(agenda)
-        status = "Found {} new agenda(s).".format(len(agenda_list))
-        print(status)
-        set_progress(progress_recorder, 3, 15, status, 2)
-
-        # For each new agenda, access its agenda detail page and extract the agenda HTML
-        i = 1
-        for agenda in agenda_list:
-            status = "Getting contents of agenda {} of {}...".format(i, len(agenda_list))
-            print(status)
-            set_progress(progress_recorder, i+4, len(agenda_list)+5, status, 2)
-            response = requests.get(agenda_url)
-            strainer = SoupStrainer("table", class_=" tableCollapsed")
-            soup = BeautifulSoup(response.text, "html.parser", parse_only=strainer)
-            header = soup.thead.find_all("tr")[len(soup.thead.find_all("tr"))-1].text.strip()
-            body = soup.tbody
-            rows = body.find_all("tr")
-            string_list = []
-            for row in rows:
-                if "." in row.text:
-                    col = row.find_all("td")
-                    if not col[0].text.strip() and not col[1].text.strip() and col[2].text.strip():
-                        string_list.append("<tr><td style=\"width: 10%\"></td><td style=\"width: 10%\"></td><td>{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
-                    elif not col[0].text.strip() and col[1].text.strip():
-                        string_list.append("<tr><td style=\"width: 10%\"></td><td colspan=\"2\">{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
-                    elif col[0].text.strip():
-                        string_list.append("<tr><td colspan=\"3\">{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
-            body_text = "".join(string_list)
-            table_text = "<table class=\">{}</table>".format(body_text)
-            i += 1
-
-    except Exception as error:
-        print(error)
-        #set_progress() to error state and provide error message/code
-
-
-def retrieve_current_agendas(agendas_url):
-    """
-    This function takes the URL where the agendas are located and returns
-    a BeautifulSoup object with the parsed HTML
-    """
-    response = requests.get(agendas_url)
-    # Don't need entire HTML page, just parse only TABLE tag containing the agendas
-    agendas_table = SoupStrainer(class_="nowrap smallText")
-
-    return BeautifulSoup(response.text, "html.parser", parse_only=agendas_table)
-
-def find_specific_agendas(parsed_html, agenda_name):
-    """
-    This function takes a BeautifulSoup object containing parsed HTML and
-    the agenda name to search for, and returns a list of matching agendas.
-    The resulting list will contain key value pairs of the agenda date as
-    a datetime object and the agenda URL as a string.
-    """
-    agenda_set = []
-    for tag in parsed_html.find_all("td", string=re.compile("%s" % agenda_name)):
-        # Select first child in tag, which contains all the agenda info we need
-        agenda_info = tag.parent.td
-
-        # Convert agenda date string into datetime object
-        agenda_date = dparser.parse(agenda_info.text, fuzzy=True)
-
-        # Check for existence of agenda link and create agenda object if exists
-        if agenda_info.a:
-            agenda_url = "http://agenda.edmondok.com:8085/" + agenda_info.a['href']
-            agenda = {"agenda_date": agenda_date, "agenda_url": agenda_url}
-            agenda_set.append(agenda)
-
-    return agenda_set
-
-def get_agenda(agenda_url):
-    """ This function takes an agenda URL and extracts the agenda contents. """
-    # Connect to the agenda URL and parse agenda HTML through BeautifulSoup
-    response = requests.get(agenda_url)
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    # Find PDF link (if available) and save to variable
-    download_link = soup.find("a", title="Download PDF Packet")
-    agenda_pdf = ""
-    if download_link:
-        agenda_pdf = "http://agenda.edmondok.com:8085" + download_link['href']
-
-    # Parse out agenda HTML and save as agenda text
+    # Extract HTML using BeautifulSoup
+    print("{}: Extracting HTML with BeautifulSoup...".format(crawler_name))
+    agendas_table = SoupStrainer("tbody", class_="nowrap smallText")
+    soup = BeautifulSoup(response.text, "html.parser", parse_only=agendas_table)
     rows = soup.find_all("tr")
-    agenda_text = ""
-    i = 3
-    while i < len(rows):
-        agenda_text += (rows[i].text.strip() + "\n")
+    status = "Searching list for any new {} agendas...".format(department.department_name)
+    set_progress(progress_recorder, 2, 10, status, 2)
+
+    # Cycle through agenda list to find any new department agendas
+    # For any that are found, store them in a list for futher processing
+    print("{}: Looking for new {} agendas...".format(crawler_name, department.department_name))
+    agenda_list = []
+    for row in rows:
+        agenda_url = "http://agenda.edmondok.com:8085/{}".format(row.a["href"])
+        agenda_date = dparser.parse(row.a.text, fuzzy=True)
+        agenda_title = row.find_all("td")[1].text
+        agenda = {
+            "agenda_url": agenda_url,
+            "agenda_date": agenda_date,
+            "agenda_title": agenda_title
+        }
+        # Check to see if agenda matches the department
+        # and doesn't already exist in the database
+        if agenda.get("agenda_title").lower().strip() == \
+            department.department_name.lower().strip():
+            if not agenda_exists(agenda.get("agenda_url")):
+                agenda_list.append(agenda)
+    status = "Found {} new agenda(s).".format(len(agenda_list))
+    print("{}: {}".format(crawler_name, status))
+    set_progress(progress_recorder, 3, 10, status, 2)
+
+    # For each new agenda, access its agenda detail page and extract the agenda HTML,
+    # prepare it for saving to the database, and then save it to the database
+    i = 1
+    progress_step = 3
+    progress_length = len(agenda_list)*2 + 4
+    for agenda in agenda_list:
+        # Update progress bar status and print
+        status = "Getting contents of agenda {} of {}...".format(i, len(agenda_list))
+        print("{}: {}".format(crawler_name, status))
+        progress_step += 1
+        set_progress(progress_recorder, progress_step, progress_length, status, 2)
+
+        # Get agenda detail page and extract HTML
+        print("Agenda: {}".format(agenda.get("agenda_url")))
+        response = requests.get(agenda.get("agenda_url"))
+        strainer = SoupStrainer("table", class_=" tableCollapsed")
+        soup = BeautifulSoup(response.text, "html.parser", parse_only=strainer)
+
+        # Separate head and body in order to strip out non-essential info
+        # at beginning of each Edmond agenda
+        header = soup.thead.find_all("tr")[len(soup.thead.find_all("tr"))-1].text.strip()
+        body = soup.tbody
+
+        # Edmond uses a table to display body of agenda. BS4 has trouble extracting tables.
+        # The below loops over the tbody tag, and for reach row of the table, it joins the
+        # text in each of the columns into one string, and then formats a new table to display
+        # the text correctly
+        rows = body.find_all("tr")
+        strings = []
+        for row in rows:
+            if "." in row.text:
+                col = row.find_all("td")
+                if not col[0].text.strip() and not col[1].text.strip() and col[2].text.strip():
+                    strings.append("<tr><td style=\"width: 10%\"></td><td style=\"width: \
+                        10%\"></td><td>{}\n\n</td></tr>".format(row.text.strip().\
+                        replace('\n', '').replace('\xa0', '')))
+                elif not col[0].text.strip() and col[1].text.strip():
+                    strings.append("<tr><td style=\"width: 10%\"></td><td \
+                        colspan=\"2\">{}\n\n</td></tr>".format(row.text.strip().\
+                        replace('\n', '').replace('\xa0', '')))
+                elif col[0].text.strip():
+                    strings.append("<tr><td colspan=\"3\">{}\n\n</td></tr>".\
+                        format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+
+        # Join the rows of body text together into one string, and then put the header and body
+        # text together into the agenda_text var for saving to the database
+        body = "".join(strings)
+        agenda_text = "{}\n\n<table>{}</table>".format(header, body)
+
+        # Find PDF link (if available) and save to variable
+        pdf_link = ""
+        if soup.find("a", title="Download PDF Packet"):
+            pdf_path = soup.find("a", title="Download PDF Packet")['href']
+            pdf_link = "http://agenda.edmondok.com:8085{}".format(pdf_path)
+
+        # Update progress bar status and print
+        status = "Saving agenda {} of {} to database...".format(i, len(agenda_list))
+        print("{}: {}".format(crawler_name, status))
+        progress_step += 1
+        set_progress(progress_recorder, progress_step, progress_length, status, 2)
+
+        # Assemble all extracted information and create an Agenda object
+        new_agenda = Agenda(
+            agenda_date=agenda.get("agenda_date"),
+            agenda_title=agenda.get("agenda_title"),
+            agenda_url=agenda.get("agenda_url"),
+            agenda_text=agenda_text,
+            pdf_link=pdf_link,
+            date_added=datetime.now(tz=get_current_timezone()),
+            department=department
+        )
+
+        # Save new agenda to the database
+        new_agenda.save()
         i += 1
-
-    agenda = {"agenda_url": agenda_url, "pdf_link": agenda_pdf, "agenda_text": agenda_text}
-
-    return agenda
