@@ -1,23 +1,23 @@
 """ Task Module for Celery """
-import time
+from datetime import datetime, timedelta
 from celery import shared_task
 from celery_progress.backend import ProgressRecorder
 from django.shortcuts import get_object_or_404
-from .crawler import exec_crawler
-from .models import Agenda, Department, Crawler
-from .modules.pdf2text import convert_pdf
+from django.utils.timezone import get_current_timezone
+from council.models import Agenda, Department
+from council.modules.backend import PDFConverter, set_progress
+from council.crawler_router import crawler_router
 
 @shared_task(bind=True)
 def convert_to_pdf(self, agenda_id):
     """ Convert agenda to PDF in the background using celery """
     progress_recorder = ProgressRecorder(self)
-    progress_recorder.set_progress(0, 15, description="Attempting to connect...")
+    set_progress(progress_recorder, 0, 15, "Attempting to connect...")
     agenda = Agenda.objects.get(pk=agenda_id)
     agenda_url = agenda.agenda_url
-    agenda.agenda_text = convert_pdf(agenda_url, progress_recorder)
-    progress_recorder.set_progress(
-        14, 15, description="PDF conversion complete. Saving to database...")
-    time.sleep(2)
+    pdf = PDFConverter(agenda_url)
+    agenda.agenda_text = pdf.convert_pdf(progress_recorder)
+    set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...")
     agenda.save()
 
     return "PDF conversion complete."
@@ -26,9 +26,19 @@ def convert_to_pdf(self, agenda_id):
 def fetch_agendas(self, dept_id):
     """ Fetch new agendas for a given department via celery """
     progress_recorder = ProgressRecorder(self)
-    progress_recorder.set_progress(0, 15, description="Connecting to City website...")
+    set_progress(progress_recorder, 0, 15, "Connecting to City website...")
     department = get_object_or_404(Department, pk=dept_id)
-    crawler = get_object_or_404(Crawler, department=department)
-    exec_crawler(crawler, department, progress_recorder)
+    crawler = department.crawler
+    crawler.crawl(progress_recorder)
+    crawler_router(department, progress_recorder)
 
     return "Fetch agendas complete."
+
+@shared_task(bind=True)
+def cleanup_old_agendas(self, max_days_old=60):
+    """ Delete agendas older than max days old """
+    progress_recorder = ProgressRecorder(self)
+    set_progress(progress_recorder, 0, 15, "Searching for old agendas...")
+    old_agendas = Agenda.objects.filter(date_added__lte=datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old))
+    for agenda in old_agendas:
+        agenda.delete()

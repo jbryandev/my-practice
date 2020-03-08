@@ -3,86 +3,88 @@ Crawler for the City of El Reno. El Reno agendas are only available as
 a scanned PDF, therefore, OCR must be used to convert the PDF to text.
 
 """
-from datetime import datetime
 import re
-import dateparser
-import requests
-from django.utils.timezone import get_current_timezone
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from council.crawlers.crawler import Crawler
+from council.modules.backend import set_progress
 
-def retrieve_agendas(agendas_url):
-    """
-    This function takes the URL where the agendas are located and returns a
-    BeautifulSoup ResultSet object with the parsed HTML of all agendas listed.
-    """
-    response = requests.get(agendas_url)
-    # Parse only the div tag that contains all of the agendas
-    agenda_div = SoupStrainer("div", class_="grid-9")
-    soup = BeautifulSoup(response.text, "html.parser", parse_only=agenda_div)
-    all_agendas = soup.find_all("li") # Retrieves all agendas on the page
+class ElRenoCrawler(Crawler):
 
-    # Trim out only the current year agendas
-    agenda_list = []
-    current_year = str(datetime.now().year)
-    for agenda in all_agendas:
-        # Regex that searches for current year in the URL path
-        if re.search(current_year, agenda.a["href"]):
-            agenda_list.append(agenda)
-    return agenda_list
+    def crawl(self, progress_recorder):
+        # Request City agenda website
+        set_progress(progress_recorder, 0, 10, "Connecting to City website...")
+        response = self.get_url(self.url)
 
-def get_most_recent_agendas(agenda_list):
-    """
-    This function takes a BeautifulSoup ResultSet and finds the 5 most recent agendas.
-    It returns a list of BeautifulSoup Tag objects containing the agendas.
-    """
-    tag_list = []
-    i = 1
-    while i <= 5 and i <= len(agenda_list):
-        tag_list.append(agenda_list[len(agenda_list) - i])
-        i += 1
+        # Extract HTML with BeautifulSoup
+        set_progress(progress_recorder, 1, 10, \
+            "Connection succeeded. Getting current list of agendas...", 2)
+        strainer = self.get_strainer("div", class_="javelin_regionContent")
+        soup = self.get_soup(response, "html.parser", parse_only=strainer)
 
-    return tag_list
+        # Search agenda list for any new department agendas
+        status = "Searching list for any new {} agendas...".format(self.name)
+        set_progress(progress_recorder, 2, 10, status, 2)
+        agenda_list = self.get_agendas(soup)
+        status = "Found {} new agenda(s).".format(len(agenda_list))
+        set_progress(progress_recorder, 3, 10, status, 2)
 
-def parse_agenda_info(agenda):
-    """
-    This function takes a BeautifulSoup Tag Object and parses out the
-    relevant agenda information, then returns a list of key-value pairs
-    """
-    # Store agenda URL
-    agenda_url = agenda.a["href"]
-    # Get agenda title as a string
-    agenda_string = agenda.a.string
+        # For each new agenda found, add it to the database
+        i = 1
+        progress_step = 3
+        progress_length = len(agenda_list) + 4
+        for agenda in agenda_list:
+            status = "Saving agenda {} of {} to the database...".format(i, len(agenda_list))
+            progress_step += 1
+            set_progress(progress_recorder, progress_step, progress_length, status, 2)
+            new_agenda = self.create_new_agenda(agenda)
+            new_agenda.save()
+            i += 1
 
-    # Test if agenda title contains letters
-    match = re.search('[a-zA-Z]', agenda_string)
-    agenda_date = ""
-    agenda_name = ""
-    if match:
-        # Agenda title contains letters (date & title)
-        # Separate date from title
-        match = re.search(r'\d{1,2}-\d{1,2}-\d{1,2}', agenda_string)
-        if match:
-            agenda_date = agenda_string[match.start():match.end()]
-            agenda_name = agenda_string.replace(
-                agenda_string[match.start():match.end()], "").strip()
-        else:
-            agenda_date = datetime.now(tz=get_current_timezone()).strftime("%m/%d/%Y")
-            agenda_name = agenda_string
-    else:
-        # Agenda title does not contain letters (date only)
-        agenda_date = agenda_string
+    def get_agendas(self, soup):
+        agenda_list = []
+        # Current year agendas SHOULD be found at soup.contents[1].contents[3]
+        # This is the first group of agendas at the top of the agenda page
+        current_year_agendas = soup.contents[1].contents[3].find_all("li")
 
-    # Convert agenda date to datetime object
-    agenda_date = dateparser.parse(agenda_date)
+        # Loop over current year agendas and weed out
+        for agenda in current_year_agendas:
+            agenda_url = agenda.a["href"]
 
-    # Store all the agenda info as key value pairs
-    agenda_info = {
-        "agenda_date": agenda_date,
-        "agenda_title": agenda_name,
-        "agenda_url": agenda_url,
-        "agenda_text": "", # will be generated upon user request
-        "pdf_link": agenda_url, # in this case it's the same as the agenda URL
-        }
+            # Check that agenda doesn't already exist in the database
+            if not self.agenda_exists(agenda_url):
+                agenda_string = agenda.text.strip()
 
-    return agenda_info
+                # El Reno agenda names contain both date and title, or sometimes just date
+                # Test if agenda title contains letters first
+                agenda_date = ""
+                agenda_name = self.name
+                match = re.search('[a-zA-Z]', agenda_string)
+                if match:
+                    # If it does, then we must separate date from title
+                    match = re.search(r'\d{1,2}-\d{1,2}-\d{1,4}', agenda_string)
+                    if match:
+                        agenda_date = self.create_date(agenda_string[match.start():match.end()])
+                        agenda_name = agenda_string.replace(
+                            agenda_string[match.start():match.end()], "").strip()
+                    else:
+                        # In some cases, agenda title doesn't contain any dates
+                        # This is most likely the yearly council dates announcement
+                        # In this case, set the date to Jan 1 of current year
+                        agenda_date = self.create_date("1/1")
+                        agenda_name = agenda_string
+                else:
+                    # Otherwise, agenda title is just the date
+                    agenda_date = self.create_date(agenda_string)
+
+                # If agenda is not older than cut-off date,
+                # Store agenda information and append to agenda list
+                if not self.too_old(agenda_date):
+                    agenda = {
+                        "agenda_url": agenda_url,
+                        "agenda_date": agenda_date,
+                        "agenda_title": agenda_name,
+                        "agenda_text": "", # will be generated upon user request
+                        "pdf_link": agenda_url, # in this case it's the same as the agenda URL
+                    }
+                    agenda_list.append(agenda)
+
+        return agenda_list

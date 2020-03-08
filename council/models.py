@@ -3,6 +3,11 @@ This defines the models used in the council app
 """
 from django.db import models
 from django.urls import reverse
+from datetime import datetime
+from django.utils import timezone
+import dateutil.parser as dparser
+import requests
+from bs4 import BeautifulSoup, SoupStrainer
 
 # Create your models here.
 class Agency(models.Model):
@@ -80,10 +85,53 @@ class Crawler(models.Model):
 
     crawler_name = models.CharField(max_length=200)
     date_added = models.DateTimeField(null=True, blank=True)
-    department = models.ManyToManyField(Department, related_name='crawlers')
+    departments = models.ManyToManyField(Department, related_name='crawlers')
+    max_days_old = 30
 
     def __str__(self):
         return self.crawler_name
+
+    def __repr__(self):
+        return self.crawler_name
+
+    @staticmethod
+    def get_url(url, timeout=10):
+        return requests.get(url, timeout=timeout)
+
+    @staticmethod
+    def get_strainer(tag, **kwargs):
+        return SoupStrainer(tag, **kwargs)
+
+    @staticmethod
+    def get_soup(response, parser, **kwargs):
+        return BeautifulSoup(response.text, parser, **kwargs)
+
+    @staticmethod
+    def agenda_exists(agenda_url):
+        return bool(Agenda.objects.filter(agenda_url=agenda_url).exists())
+
+    @staticmethod
+    def get_current_date():
+        return datetime.now(tz=timezone.get_current_timezone())
+
+    @staticmethod
+    def create_date(date_string):
+        return timezone.make_aware(dparser.parse(date_string, fuzzy=True))
+
+    def too_old(self, date):
+        return bool((self.get_current_date() - date).days > self.max_days_old)
+
+    def create_new_agenda(self, agenda_info):
+        agenda = Agenda(
+            agenda_date=agenda_info.get("agenda_date"),
+            agenda_title=agenda_info.get("agenda_title"),
+            agenda_url=agenda_info.get("agenda_url"),
+            agenda_text=agenda_info.get("agenda_text"),
+            pdf_link=agenda_info.get("pdf_link"),
+            date_added=self.get_current_date(),
+            department=self.department
+        )
+        return agenda
 
 class Category(models.Model):
     """ A model to define categories for keyphrases and highlights. """

@@ -86,18 +86,28 @@
                     });
             });
         </script>
-        {% endif %}
-
-        {% if department.agendas.all.exists %}
-        <div class="list-group">
-            {% for agenda in department.agendas.all %}
-                {% if agenda.active %}
-                <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
-                    {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
-                {% endif %}
-            {% endfor %}
+            {% if department.agendas.all.exists %}
+            <div class="list-group">
+                {% for agenda in department.agendas.all %}
+                    {% if agenda.active %}
+                    <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
+                        {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
+                    {% endif %}
+                {% endfor %}
             </div>
-        {% else %}No agendas have been added for this department yet.
+            {% endif %}
+        {% else %}
+            {% if department.agendas.all.exists %}
+            <div class="list-group">
+                {% for agenda in department.agendas.all %}
+                    {% if agenda.active %}
+                    <a class="list-group-item list-group-item-action" href="{% url 'council:agenda-detail' agenda.id %}">
+                        {{ agenda.agenda_date|date:"m/d/y" }} {{ agenda.agenda_title }} {% if agenda.is_new %}<span class="badge badge-danger">New</span>{% endif %}</a>
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% else %}No agendas have been added for this department yet.
+            {% endif %}
         {% endif %}
     </div>
 </div>
