@@ -30,7 +30,6 @@ def fetch_agendas(self, dept_id):
     department = get_object_or_404(Department, pk=dept_id)
     crawler = department.crawler
     crawler.crawl(progress_recorder)
-    crawler_router(department, progress_recorder)
 
     return "Fetch agendas complete."
 
