@@ -16,22 +16,28 @@ class Crawler:
     def __repr__(self):
         return self.name
 
-    def get_url(self, url, timeout=10):
+    @staticmethod
+    def get_url(url, timeout=10):
         return requests.get(url, timeout=timeout)
 
-    def get_strainer(self, tag, **kwargs):
+    @staticmethod
+    def get_strainer(tag, **kwargs):
         return SoupStrainer(tag, **kwargs)
 
-    def get_soup(self, response, parser, **kwargs):
+    @staticmethod
+    def get_soup(response, parser, **kwargs):
         return BeautifulSoup(response.text, parser, **kwargs)
 
-    def agenda_exists(self, agenda_url):
+    @staticmethod
+    def agenda_exists(agenda_url):
         return bool(Agenda.objects.filter(agenda_url=agenda_url).exists())
 
-    def get_current_date(self):
+    @staticmethod
+    def get_current_date():
         return datetime.now(tz=timezone.get_current_timezone())
 
-    def create_date(self, date_string):
+    @staticmethod
+    def create_date(date_string):
         return timezone.make_aware(dparser.parse(date_string, fuzzy=True))
 
     def too_old(self, date):

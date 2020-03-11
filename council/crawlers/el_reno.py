@@ -79,11 +79,11 @@ class ElRenoCrawler(Crawler):
                 # Store agenda information and append to agenda list
                 if not self.too_old(agenda_date):
                     agenda = {
-                        "agenda_url": agenda_url,
                         "agenda_date": agenda_date,
                         "agenda_title": agenda_name,
+                        "agenda_url": agenda_url,
                         "agenda_text": "", # will be generated upon user request
-                        "pdf_link": agenda_url, # in this case it's the same as the agenda URL
+                        "pdf_link": agenda_url
                     }
                     agenda_list.append(agenda)
 

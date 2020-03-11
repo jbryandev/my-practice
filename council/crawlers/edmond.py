@@ -73,9 +73,9 @@ class EdmondCrawler(Crawler):
                 # and doesn't already exist in the database
                 if not self.agenda_exists(agenda_url):
                     agenda = {
-                        "agenda_url": agenda_url,
                         "agenda_date": agenda_date,
-                        "agenda_title": agenda_title
+                        "agenda_title": agenda_title,
+                        "agenda_url": agenda_url,
                     }
                     agenda_list.append(agenda)
 

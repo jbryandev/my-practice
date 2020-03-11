@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
 from council.modules.backend import PDFConverter, set_progress
-from council.crawler_router import crawler_router
+from council.crawlers.crawler_factory import CrawlerFactory
 
 @shared_task(bind=True)
 def convert_to_pdf(self, agenda_id):
@@ -17,7 +17,7 @@ def convert_to_pdf(self, agenda_id):
     agenda_url = agenda.agenda_url
     pdf = PDFConverter(agenda_url)
     agenda.agenda_text = pdf.convert_pdf(progress_recorder)
-    set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...")
+    set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...", 2)
     agenda.save()
 
     return "PDF conversion complete."
@@ -28,16 +28,25 @@ def fetch_agendas(self, dept_id):
     progress_recorder = ProgressRecorder(self)
     set_progress(progress_recorder, 0, 15, "Connecting to City website...")
     department = get_object_or_404(Department, pk=dept_id)
-    crawler = department.crawler
+    crawler = CrawlerFactory.create_crawler(department)
     crawler.crawl(progress_recorder)
 
     return "Fetch agendas complete."
 
 @shared_task(bind=True)
-def cleanup_old_agendas(self, max_days_old=60):
+def cleanup_old_agendas(self, max_days_old=30):
     """ Delete agendas older than max days old """
     progress_recorder = ProgressRecorder(self)
     set_progress(progress_recorder, 0, 15, "Searching for old agendas...")
-    old_agendas = Agenda.objects.filter(date_added__lte=datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old))
+    print("Cutoff date: {}".format(
+        datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)))
+    old_agendas = Agenda.objects.filter(
+        agenda_date__lte=datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)
+    )
+    print("Found {} that are older than the cutoff date. Preparing to delete...".format(
+        len(old_agendas)))
+    i = 1
     for agenda in old_agendas:
+        print("Deleting agenda {} of {}...".format(i, len(old_agendas)))
         agenda.delete()
+        i += 1

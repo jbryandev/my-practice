@@ -1,8 +1,8 @@
 """ Views for the application """
 from datetime import date, timedelta
 from django.views import generic
-from .models import Agency, Department, Agenda
-from .tasks import convert_to_pdf, fetch_agendas
+from council.models import Agency, Department, Agenda
+from council.tasks import convert_to_pdf, fetch_agendas
 
 # Create your views here.
 

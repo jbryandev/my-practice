@@ -24,7 +24,8 @@ class Agency(models.Model):
 class Crawler(models.Model):
     """
     A crawler is the vehicle for scraping agenda data from the web.
-    A crawler can belong to multiple departments.
+    Each department will have a crawler. In most cases, all departments
+    under the same agency will use the same crawler.
     """
     class Meta:
         ordering = ('crawler_name', 'date_added')
