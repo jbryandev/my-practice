@@ -9,7 +9,7 @@ def set_chrome_options():
     """
     This function sets the chrome options for the driver.
     """
-    print("set_chrome_options_called")
+    print("CHROMEDRIVER: set_chrome_options_called")
     chrome_options = webdriver.ChromeOptions()
     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     chrome_options.add_argument("--headless")
@@ -24,7 +24,7 @@ def get_chrome_driver(chrome_options):
     """
     This function takes chrome options and establishes the driver.
     """
-    print("get_chrome_driver called")
+    print("CHROMEDRIVER: get_chrome_driver called")
     driver = webdriver.Chrome(
         executable_path=os.environ.get("CHROMEDRIVER_PATH"),
         chrome_options=chrome_options
@@ -37,7 +37,7 @@ def open_browser(page_url):
     This function uses Selenium to open a Chrome browser instance and
     navigate to the given URL.
     """
-    print("open_browser called")
+    print("CHROMEDRIVER: open_browser called")
     chrome_options = set_chrome_options()
     browser = get_chrome_driver(chrome_options)
     browser.get(page_url)

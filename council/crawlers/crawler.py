@@ -25,8 +25,8 @@ class Crawler:
         return SoupStrainer(tag, **kwargs)
 
     @staticmethod
-    def get_soup(response, parser, **kwargs):
-        return BeautifulSoup(response.text, parser, **kwargs)
+    def get_soup(page_source, parser, **kwargs):
+        return BeautifulSoup(page_source, parser, **kwargs)
 
     @staticmethod
     def agenda_exists(agenda_url):

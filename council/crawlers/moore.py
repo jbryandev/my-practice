@@ -20,7 +20,7 @@ class MooreCrawler(Crawler):
         set_progress(progress_recorder, 1, 10, \
             "Connection succeeded. Getting current list of agendas...", 2)
         strainer = self.get_strainer("li", class_="public_meetings__meeting")
-        soup = self.get_soup(response, "html.parser", parse_only=strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
 
         # Search agenda list for any new department agendas
         status = "Searching list for any new {} agendas...".format(self.name)
@@ -67,7 +67,7 @@ class MooreCrawler(Crawler):
     def get_agenda_url(self, agenda_detail_url):
         response = self.get_url(agenda_detail_url)
         strainer = self.get_strainer("div", class_="accordion__item__content__wrapper")
-        soup = self.get_soup(response, "html.parser", parse_only=strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
         if soup.a:
             agenda_url = soup.a["href"]
             return agenda_url

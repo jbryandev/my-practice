@@ -20,7 +20,7 @@ class MidwestCityCrawler(Crawler):
         set_progress(progress_recorder, 1, 10, \
             "Connection succeeded. Getting current list of agendas...", 2)
         strainer = self.get_strainer("table", id="table14")
-        soup = self.get_soup(response, "html.parser", parse_only=strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
 
         # Search agenda list for any new department agendas
         status = "Searching list for any new {} agendas...".format(self.name)

@@ -25,7 +25,7 @@ class EdmondCrawler(Crawler):
         set_progress(progress_recorder, 1, 10, \
             "Connection succeeded. Getting current list of agendas...", 2)
         strainer = self.get_strainer("tbody", class_="nowrap smallText")
-        soup = self.get_soup(response, "html.parser", parse_only=strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
 
         # Search agenda list for any new department agendas
         status = "Searching list for any new {} agendas...".format(self.name)
@@ -45,7 +45,7 @@ class EdmondCrawler(Crawler):
             set_progress(progress_recorder, progress_step, progress_length, status, 2)
             response = self.get_url(agenda.get("agenda_url"))
             strainer = self.get_strainer("table", class_=" tableCollapsed")
-            soup = self.get_soup(response, "html.parser", parse_only=strainer)
+            soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
             agenda_text = self.get_agenda_text(soup)
             pdf_link = self.get_pdf_link(soup)
             agenda.update({

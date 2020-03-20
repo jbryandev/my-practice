@@ -20,7 +20,7 @@ class NormanCrawler(Crawler):
         set_progress(progress_recorder, 1, 10, \
             "Connection succeeded. Getting current list of agendas...", 2)
         strainer = self.get_strainer("table", id="filebrowser-file-listing")
-        soup = self.get_soup(response, "html.parser", parse_only=strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=strainer)
 
         # Search agenda list for any new department agendas
         status = "Searching list for any new {} agendas...".format(self.name)
@@ -69,45 +69,3 @@ class NormanCrawler(Crawler):
                             agenda_list.append(agenda_obj)
 
         return agenda_list
-
-
-# def retrieve_agendas(agendas_url):
-#     """
-#     This function takes a URL and retrieves all of the agendas
-#     at this location. It returns a list of agenda objects.
-#     """
-#     response = requests.get(agendas_url)
-#     agenda_table = SoupStrainer("table", id="filebrowser-file-listing")
-#     soup = BeautifulSoup(response.text, "html.parser", parse_only=agenda_table)
-#     # Limit search to 5 most-recent agendas
-#     agendas = soup.tbody.find_all("tr", limit=5)
-#     agenda_list = []
-#     for agenda in agendas:
-#         # The first row is not an agenda, which can be confirmed by the absence
-#         # of filesize text. Agenda.contents[2] is where the filesize is found.
-#         if agenda.contents[2].text:
-#             pdf_link = "http://www.normanok.gov" + agenda.a["href"]
-#             match = re.search(r'\d{1,4}-\d{1,2}-\d{1,2}', agenda.a.text)
-#             agenda_date = dparser.parse(match.group(0), fuzzy=True)
-#             agenda_title = agenda.a.text[match.end():len(agenda.a.text)].strip()
-#             agenda_obj = {
-#                 "agenda_url": pdf_link,
-#                 "agenda_date": agenda_date,
-#                 "agenda_title": agenda_title,
-#                 "pdf_link": pdf_link
-#             }
-#             agenda_list.append(agenda_obj)
-
-#     return agenda_list
-
-# def match_agendas(agenda_list, department_name):
-#     """
-#     This function takes a list of agenda dicts, as well as the department
-#     name to search for, and returns a list of agendas for the department.
-#     """
-#     matched_agendas = []
-#     for agenda in agenda_list:
-#         if re.search(department_name, agenda.get("agenda_title")):
-#             matched_agendas.append(agenda)
-
-#     return matched_agendas

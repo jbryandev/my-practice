@@ -26,8 +26,8 @@ class CrawlerFactory:
         elif name == "Norman":
             crawler = norman.NormanCrawler(department)
 
-        # elif name == "Oklahoma City":
-        #     crawler = okc.OKCCrawler(department)
+        elif name == "Oklahoma City":
+            crawler = okc.OKCCrawler(department)
 
         # elif name == "Tulsa":
         #     crawler = tulsa.TulsaCrawler(department)
