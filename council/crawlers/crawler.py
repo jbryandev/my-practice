@@ -7,14 +7,18 @@ from council.models import Agenda
 
 class Crawler:
 
-    def __init__(self, department):
+    def __init__(self, department, progress_recorder):
         self.name = department.department_name
         self.url = department.agendas_url
         self.department = department
         self.max_days_old = 30
+        self.progress_recorder = progress_recorder
 
     def __repr__(self):
         return self.name
+
+    def crawl(self):
+        pass
 
     @staticmethod
     def get_url(url, timeout=10):

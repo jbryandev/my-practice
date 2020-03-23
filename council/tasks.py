@@ -7,6 +7,7 @@ from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
 from council.modules.backend import PDFConverter, set_progress
 from council.crawlers.crawler_factory import CrawlerFactory
+from council.modules.backend import CouncilRecorder
 
 @shared_task(bind=True)
 def convert_to_pdf(self, agenda_id):
@@ -25,11 +26,12 @@ def convert_to_pdf(self, agenda_id):
 @shared_task(bind=True)
 def fetch_agendas(self, dept_id):
     """ Fetch new agendas for a given department via celery """
-    progress_recorder = ProgressRecorder(self)
-    set_progress(progress_recorder, 0, 15, "Connecting to City website...")
+    progress_recorder = CouncilRecorder(self)
+    status_message = "Connecting to City website..."
+    progress_recorder.update(0, 1, status_message)
     department = get_object_or_404(Department, pk=dept_id)
-    crawler = CrawlerFactory.create_crawler(department)
-    crawler.crawl(progress_recorder)
+    crawler = CrawlerFactory.create_crawler(department, progress_recorder)
+    crawler.crawl()
 
     return "Fetch agendas complete."
 
