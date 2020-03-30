@@ -6,12 +6,14 @@ from council.models import Agenda
 
 class AgendaFilter(ABC):
 
-    def __init__(self, department):
+    def __init__(self, department, progress_observer):
         self.department = department
+        self.progress_observer = progress_observer
 
     @abstractmethod
-    def filter(self, page_source):
-        pass
+    def filter(self):
+        status = "Searching list for any new {} agendas...".format(self.department.department_name)
+        self.progress_observer.update(2, 10, status, 2)
 
     @staticmethod
     def create_date(date_string):
@@ -24,6 +26,7 @@ class AgendaFilter(ABC):
 class EdmondAgendaFilter(AgendaFilter):
 
     def filter(self, page_source):
+        super().filter()
         agenda_list = []
         rows = page_source.find_all("tr")
         for row in rows:

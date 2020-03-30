@@ -6,10 +6,10 @@ from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.common.exceptions import TimeoutException
 from council.modules import chromedriver
 
-class Scraper(ABC):
+class WebScraper(ABC):
 
     @abstractmethod
-    def scrape(self, url, strainer=None, timeout=10):
+    def scrape(self):
         pass
 
     @staticmethod
@@ -20,20 +20,24 @@ class Scraper(ABC):
     def get_soup(page_source, **kwargs):
         return BeautifulSoup(page_source, "html.parser", **kwargs)
 
-class SimpleScraper(Scraper):
+class SimpleScraper(WebScraper):
 
     def scrape(self, url, strainer=None, timeout=10):
+        super().scrape()
         response = self.request(url, timeout)
+        self.progress_observer.update(1, 10, "Connection succeeded. Getting current list of agendas...", 2)
         if strainer:
             soup = self.get_soup(response.text, parse_only=strainer)
         else:
             soup = self.get_soup(response.text)
         return soup
 
-class SeleniumScraper(Scraper):
+class SeleniumScraper(WebScraper):
 
     def scrape(self, url, strainer=None, timeout=10):
+        super().scrape()
         browser = chromedriver.open_browser(url)
+        self.progress_observer.update(1, 10, "Connection succeeded. Getting current list of agendas...", 2)
         try:
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
             if strainer:
@@ -46,10 +50,12 @@ class SeleniumScraper(Scraper):
             print("Timed out waiting for page to load")
             browser.quit()
 
-class TulsaScraper(Scraper):
+class TulsaScraper(WebScraper):
 
     def scrape(self, url, strainer=None, timeout=10):
+        super().scrape()
         browser = chromedriver.open_browser(url)
+        self.progress_observer.update(1, 10, "Connection succeeded. Getting current list of agendas...", 2)
         try:
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("iframe"))
             browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))

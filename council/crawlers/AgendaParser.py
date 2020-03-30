@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 class AgendaParser(ABC):
 
+    def __init__(self, progress_observer):
+        self.progress_observer = progress_observer
+
     @abstractmethod
     def parse(self, agenda_list):
         pass

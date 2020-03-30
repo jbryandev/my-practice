@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
 from council.modules.backend import PDFConverter, set_progress
-from council.crawlers.crawler_factory import CrawlerFactory
+from council.crawlers.CrawlerFactory import CrawlerFactory
 from council.modules.backend import CouncilRecorder
 
 @shared_task(bind=True)
