@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
 from council.modules.backend import PDFConverter, set_progress
-from council.crawlers.CrawlerFactory import CrawlerFactory
+from council.crawlers import CrawlerFactory
 from council.modules.backend import CouncilRecorder
 
 @shared_task(bind=True)
@@ -20,7 +20,6 @@ def convert_to_pdf(self, agenda_id):
     agenda.agenda_text = pdf.convert_pdf(progress_recorder)
     set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...", 2)
     agenda.save()
-
     return "PDF conversion complete."
 
 @shared_task(bind=True)
@@ -32,7 +31,6 @@ def fetch_agendas(self, dept_id):
     department = get_object_or_404(Department, pk=dept_id)
     crawler = CrawlerFactory.create_crawler(department, progress_recorder)
     crawler.crawl()
-
     return "Fetch agendas complete."
 
 @shared_task(bind=True)
@@ -52,3 +50,4 @@ def cleanup_old_agendas(self, max_days_old=30):
         print("Deleting agenda {} of {}...".format(i, len(old_agendas)))
         agenda.delete()
         i += 1
+    return "Cleanup of old agendas complete."

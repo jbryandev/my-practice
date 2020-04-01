@@ -59,10 +59,10 @@ class Crawler(ABC):
             i += 1
 
     def get_page_source(self, url):
-        return self.request(url)
+        return self.request(url).text
 
-    def parse_html(self, response):
-        return self.get_soup(response.text, "html.parser", parse_only=self.strainer)
+    def parse_html(self, page_source):
+        return self.get_soup(page_source, "html.parser", parse_only=self.strainer)
 
     @abstractmethod
     def filter_agendas(self, parsed_html):
