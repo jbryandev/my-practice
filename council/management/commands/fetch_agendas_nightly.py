@@ -11,3 +11,4 @@ class Command(BaseCommand):
         for department in departments:
             self.stdout.write(f'Fetching agendas for {department.agency} - {department.department_name}')
             #fetch_agendas.delay(department.id)
+        self.stdout.write("---COMPLETED FETCH AGENDAS NIGHTLY TASK---")
