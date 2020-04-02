@@ -8,6 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("---RUNNING FETCH AGENDAS NIGHTLY TASK---")
         departments = Department.objects.all()
+        fetch_agendas.delay(departments[0].id)
         for department in departments:
             self.stdout.write(f'Fetching agendas for {department.agency} - {department.department_name}')
             #fetch_agendas.delay(department.id)
