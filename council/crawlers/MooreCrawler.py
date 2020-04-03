@@ -1,5 +1,5 @@
 import re
-from council.crawlers.Crawler import Crawler
+from .Crawler import Crawler
 
 class MooreCrawler(Crawler):
 

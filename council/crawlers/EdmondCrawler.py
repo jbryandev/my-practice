@@ -1,4 +1,4 @@
-from council.crawlers.Crawler import Crawler
+from .Crawler import Crawler
 
 class EdmondCrawler(Crawler):
 

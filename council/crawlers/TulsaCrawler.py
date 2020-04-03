@@ -1,7 +1,7 @@
 import re
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.common.exceptions import TimeoutException
-from council.crawlers.Crawler import Crawler
+from .Crawler import Crawler
 
 class TulsaCrawler(Crawler):
 
