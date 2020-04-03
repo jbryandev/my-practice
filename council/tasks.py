@@ -1,24 +1,22 @@
 """ Task Module for Celery """
 from datetime import datetime, timedelta
 from celery import shared_task
-from celery_progress.backend import ProgressRecorder
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
-from council.modules.backend import PDFConverter, set_progress
+from council.modules.backend import PDFConverter, CouncilRecorder
 from council import CrawlerFactory
-from council.modules.backend import CouncilRecorder
 
 @shared_task(bind=True)
 def convert_to_pdf(self, agenda_id):
     """ Convert agenda to PDF in the background using celery """
-    progress_recorder = ProgressRecorder(self)
-    set_progress(progress_recorder, 0, 15, "Attempting to connect...")
+    progress_recorder = CouncilRecorder(self)
+    progress_recorder.update(0, 15, "Attempting to connect...")
     agenda = Agenda.objects.get(pk=agenda_id)
     agenda_url = agenda.agenda_url
     pdf = PDFConverter(agenda_url)
     agenda.agenda_text = pdf.convert_pdf()
-    set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...", 2)
+    progress_recorder.update(14, 15, "PDF conversion complete. Saving to database...")
     agenda.save()
     return "PDF conversion complete."
 
@@ -37,8 +35,8 @@ def fetch_agendas(self, dept_id):
 @shared_task(bind=True)
 def cleanup_old_agendas(self, max_days_old=30):
     """ Delete agendas older than max days old """
-    progress_recorder = ProgressRecorder(self)
-    set_progress(progress_recorder, 0, 15, "Searching for old agendas...")
+    progress_recorder = CouncilRecorder(self)
+    progress_recorder.update(0, 15, "Searching for old agendas...")
     print("Cutoff date: {}".format(
         datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)))
     old_agendas = Agenda.objects.filter(

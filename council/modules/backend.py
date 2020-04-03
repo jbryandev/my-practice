@@ -125,14 +125,8 @@ class PDFConverter:
         print("PDF2Text: Extracting text using OCR...")
         return pytesseract.image_to_string(pdf_image)
 
-# Depricated; use CouncilRecorder
-def set_progress(progress_recorder, start, end, descr, delay=1):
-    """ This function controls a progress recorder instance """
-    progress_recorder.set_progress(start, end, description=descr)
-    time.sleep(delay)
-
 class CouncilRecorder(ProgressRecorder):
 
-    def update(self, start, end, message, delay=1):
+    def update(self, start, end, message, delay=3):
         self.set_progress(start, end, message)
         time.sleep(delay)
