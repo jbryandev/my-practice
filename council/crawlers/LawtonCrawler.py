@@ -32,7 +32,7 @@ class LawtonCrawler(Crawler):
     def parse_agenda(self, agenda):
         response = self.request(agenda.get("agenda_url"))
         self.set_strainer("span", class_="file-link")
-        soup = self.get_soup(response, "html.parser", parse_only=self.strainer)
+        soup = self.get_soup(response.text, "html.parser", parse_only=self.strainer)
         pdf_link = soup.a["href"]
         agenda.update({"pdf_link": pdf_link})
         return agenda

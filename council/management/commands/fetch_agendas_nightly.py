@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from django.utils import timezone
 from django.core.management.base import BaseCommand
@@ -24,6 +23,7 @@ class Command(BaseCommand):
             self.stdout.write(f'Found {new_count} new agendas. Sending email summary...')
             self.send_email(new_count)
         else:
+            # Didn't find any new agendas
             self.stdout.write(f'No new agendas were found.')
         self.stdout.write("---COMPLETED FETCH AGENDAS NIGHTLY TASK---")
 
