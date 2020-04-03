@@ -1,5 +1,5 @@
 import re
-from .Crawler import Crawler
+from council.Crawler import Crawler
 
 class LawtonCrawler(Crawler):
 

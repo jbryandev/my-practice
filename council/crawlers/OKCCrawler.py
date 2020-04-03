@@ -2,7 +2,7 @@ import re
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import Tag
-from .Crawler import Crawler
+from council.Crawler import Crawler
 
 class OKCCrawler(Crawler):
 

@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department
 from council.modules.backend import PDFConverter, set_progress
-from council.crawlers import CrawlerFactory
+from council import CrawlerFactory
 from council.modules.backend import CouncilRecorder
 
 @shared_task(bind=True)
@@ -17,7 +17,7 @@ def convert_to_pdf(self, agenda_id):
     agenda = Agenda.objects.get(pk=agenda_id)
     agenda_url = agenda.agenda_url
     pdf = PDFConverter(agenda_url)
-    agenda.agenda_text = pdf.convert_pdf(progress_recorder)
+    agenda.agenda_text = pdf.convert_pdf()
     set_progress(progress_recorder, 14, 15, "PDF conversion complete. Saving to database...", 2)
     agenda.save()
     return "PDF conversion complete."
