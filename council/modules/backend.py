@@ -85,18 +85,15 @@ class PDFConverter:
     def __init__(self, pdf_url):
         self.pdf_url = pdf_url
 
-    def convert_pdf(self, progress_recorder):
+    def convert_pdf(self):
         request = self.request_pdf()
-        set_progress(progress_recorder, 1, 15, "Connection successful. Downloading PDF...")
         file = self.read_pdf(request)
-        set_progress(progress_recorder, 2, 15, "Download complete. Getting page count...")
         images = self.get_images(file)
         i = 1
         pdf_text = ""
         for image in images:
-            progress_desc = "Converting page {} of {}...".format(i, len(images))
-            print("PDF2Text: {}".format(progress_desc))
-            set_progress(progress_recorder, i + 2, len(images) + 3, progress_desc)
+            status = "Converting page {} of {}...".format(i, len(images))
+            print("PDF2Text: {}".format(status))
             processed_image = self.process_image(image)
             pdf_text += "{}".format(self.extract_text(processed_image))
             print("PDF2Text: Conversion of page " + str(i) + " complete.")

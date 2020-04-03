@@ -19,7 +19,6 @@ class MooreCrawler(Crawler):
                     # and it doesn't already exist in the database
                     agenda_url = self.get_agenda_url(agenda.a["href"])
                     if not self.agenda_exists(agenda_url) and agenda_url:
-                        print("agenda doesn't already exist")
                         agenda = {
                             "agenda_date": agenda_date,
                             "agenda_title": agenda_title,

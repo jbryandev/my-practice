@@ -45,3 +45,8 @@ Thumbs.db
 # Python #
 ######################
 /env/*
+
+# Heroku #
+######################
+*.env
+*.windows
