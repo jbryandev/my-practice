@@ -6,7 +6,6 @@ import requests
 from bs4 import BeautifulSoup, SoupStrainer
 from council.models import Agenda
 from council.modules import chromedriver
-from council.modules.backend import PDFConverter, CouncilRecorder
 
 class Crawler(ABC):
 
@@ -24,7 +23,7 @@ class Crawler(ABC):
     def crawl(self):
         # Connect to City website and get page source
         status = "Connecting to City website..."
-        self.progress_recorder.update(0, 10, status, 1)
+        self.progress_recorder.update(0, 10, status)
         page_source = self.get_page_source(self.url)
 
         # Parse the extracted page source
@@ -42,25 +41,13 @@ class Crawler(ABC):
         # Loop over filtered agendas, parse out the info, and save to database
         i = 1
         progress_step = 3
-        progress_length = len(filtered_agendas)*3 + 4
+        progress_length = len(filtered_agendas)*2 + 4
         for agenda in filtered_agendas:
             # Parse out agenda information
             status = "Getting contents of agenda {} of {}...".format(i, len(filtered_agendas))
             progress_step += 1
             self.progress_recorder.update(progress_step, progress_length, status)
             parsed_agenda = self.parse_agenda(agenda)
-
-            # Convert PDF to text if necessary
-            if not parsed_agenda.get("agenda_text"):
-                status = "Converting agenda PDF to text..."
-                progress_step += 1
-                self.progress_recorder.update(progress_step, progress_length, status)
-                agenda_text = PDFConverter(agenda.get("agenda_url")).convert_pdf()
-                parsed_agenda.update({"agenda_text": agenda_text})
-            else:
-                status = "Getting contents of agenda {} of {}...".format(i, len(filtered_agendas))
-                progress_step += 1
-                self.progress_recorder.update(progress_step, progress_length, status)
 
             # Save agenda to database
             status = "Saving agenda {} of {} to the database...".format(i, len(filtered_agendas))

@@ -16,17 +16,21 @@ class LawtonCrawler(Crawler):
                 # And if the agenda is available...
                 match = re.search("Agenda Available", agenda.text)
                 if match:
-                    # Store agenda information and append to agenda list
-                    agenda_day = agenda.select(".event-card-day")[0].text
-                    agenda_month = agenda.select(".event-card-year")[0].text
-                    agenda_date = self.create_date("{} {}".format(agenda_day, agenda_month))
+                    # And if the agenda doesn't already exist...
                     agenda_url = "https://www.lawtonok.gov{}".format(agenda["about"])
-                    agenda_obj = {
-                        "agenda_date": agenda_date,
-                        "agenda_title": agenda_title,
-                        "agenda_url": agenda_url
-                    }
-                    filtered_agendas.append(agenda_obj)
+                    if not self.agenda_exists(agenda_url):
+                        # And if the agenda isn't too old...
+                        agenda_day = agenda.select(".event-card-day")[0].text
+                        agenda_month = agenda.select(".event-card-year")[0].text
+                        agenda_date = self.create_date("{} {}".format(agenda_day, agenda_month))
+                        if not self.too_old(agenda_date):
+                            # Store agenda information and append to agenda list
+                            agenda_obj = {
+                                "agenda_date": agenda_date,
+                                "agenda_title": agenda_title,
+                                "agenda_url": agenda_url
+                            }
+                            filtered_agendas.append(agenda_obj)
         return filtered_agendas
 
     def parse_agenda(self, agenda):
