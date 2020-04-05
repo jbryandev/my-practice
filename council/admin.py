@@ -52,7 +52,7 @@ class CrawlerAdmin(admin.ModelAdmin):
 
 class CategoryAdmin(admin.ModelAdmin):
     """ Admin model for Categories """
-    list_display = ('category_name', 'date_added')
+    list_display = ('name', 'date_added')
 
 class HighlightAdmin(admin.ModelAdmin):
     """ Admin model for Highlight class """
@@ -87,7 +87,7 @@ class KeyphraseAdmin(admin.ModelAdmin):
     """ Admin model for Keyphrase class """
     list_display = ('__str__', 'category', 'date_added')
     list_filter = ['category']
-    search_fields = ['kp_text']
+    search_fields = ['phrase']
 
 class DepartmentChoiceField(ModelChoiceField):
     """

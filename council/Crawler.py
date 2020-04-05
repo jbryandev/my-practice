@@ -21,6 +21,9 @@ class Crawler(ABC):
         return self.name
 
     def crawl(self):
+
+        new_agendas = []
+
         # Connect to City website and get page source
         status = "Connecting to City website..."
         self.progress_recorder.update(0, 10, status)
@@ -55,7 +58,9 @@ class Crawler(ABC):
             self.progress_recorder.update(progress_step, progress_length, status)
             new_agenda = self.create_new_agenda(parsed_agenda)
             new_agenda.save()
+            new_agendas.append(new_agenda)
             i += 1
+        return new_agendas
 
     def get_page_source(self, url):
         return self.request(url).text

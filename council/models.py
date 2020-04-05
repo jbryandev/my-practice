@@ -91,11 +91,11 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "categories"
 
-    category_name = models.CharField(max_length=200, null=False, blank=False, default="Default")
+    name = models.CharField(max_length=200, null=False, blank=False)
     date_added = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return self.category_name
+        return self.name
 
 class Highlight(models.Model):
     """
@@ -104,11 +104,11 @@ class Highlight(models.Model):
     A highlight belongs to only one agenda, but an agenda can have many highlights.
     """
     date_added = models.DateTimeField(null=True, blank=True)
-    hl_start = models.PositiveIntegerField("highlight start")
-    hl_end = models.PositiveIntegerField("highlight end")
+    start = models.PositiveIntegerField("highlight start")
+    end = models.PositiveIntegerField("highlight end")
     agenda = models.ForeignKey(Agenda, related_name='highlights', on_delete=models.CASCADE)
     category = models.ForeignKey(
-        Category, related_name='highlights', on_delete=models.CASCADE, default=1)
+        Category, related_name='highlights', on_delete=models.CASCADE)
 
     def __str__(self):
         return "Highlight " + str(self.pk)
@@ -124,13 +124,13 @@ class Keyphrase(models.Model):
     Keyphrase matches form the basis for generating highlights.
     """
     class Meta:
-        ordering = ('kp_text', 'date_added')
+        ordering = ('phrase', 'date_added')
 
-    kp_text = models.CharField(
-        "keyphrase", max_length=200, null=False, blank=False, default="Default")
+    phrase = models.CharField(
+        "keyphrase", max_length=200, null=False, blank=False)
     date_added = models.DateTimeField(null=True, blank=True)
     category = models.ForeignKey(
-        Category, related_name='keyphrases', on_delete=models.CASCADE, default=1)
+        Category, related_name='keyphrases', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.kp_text
+        return self.phrase

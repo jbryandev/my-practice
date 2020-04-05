@@ -13,11 +13,11 @@ def highlight(text, agenda_id):
     add_length = 0
 
     for hl in highlights:
-        hl_text = text[hl.hl_start + add_length:hl.hl_end + add_length]
+        hl_text = text[hl.start + add_length:hl.end + add_length]
         hl_marked = '<mark>' + hl_text + '</mark>'
-        begin = text[:hl.hl_start + add_length]
+        begin = text[:hl.start + add_length]
         middle = hl_marked
-        end = text[hl.hl_end + add_length:]
+        end = text[hl.end + add_length:]
         text = begin + middle + end
         add_length += len(hl_marked) - len(hl_text)
 

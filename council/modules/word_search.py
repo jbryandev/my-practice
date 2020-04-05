@@ -1,36 +1,41 @@
+import re
 """
-This module uses Acora to search for a given keyphrase
-and then returns the full paragraph containing the keyphrase
-for any matches found.
+from council.modules.word_search import match_lines
+from council.models import Agenda
+agenda = Agenda.objects.get(id=127)
+words = "Consideration", "CEC, Inc."
+match_lines(agenda.agenda_text, words)
 """
-from acora import AcoraBuilder
-
-def match_lines(string, *keyphrases):
+def match_lines(string, *search_words):
     """
     This function takes a string and a set of keyphrases to search for.
-    It uses Acora to search the string for matches. If matches are found,
-    this function returns the start and end position of the whole paragraph
-    where the match was found in order to provide context for the match.
+    If matches are found, this function returns the start and end of the
+    paragraph containing the match.
     """
-    builder = AcoraBuilder('\n\n', *keyphrases)
-    acora = builder.build()
-    matched_pairs = []
-    match_start_end = None
-    line_start = 0
-    matches = False
-    for keys, pos in acora.finditer(string):
-        if keys in '\n\n':
-            if matches:
-                print(string[line_start:pos])
-                match_start_end = {"start": line_start, "end": pos}
-                matched_pairs.append(match_start_end)
-                matches = False
-            line_start = pos + 1
-        else:
-            matches = True
-    if matches:
-        print(string[line_start:])
-        match_start_end = {"start": line_start, "end": len(string)}
-        matched_pairs.append(match_start_end)
+    matches = []
+    for i in range(0, len(search_words)):
+        for match in re.finditer(search_words[i], string, re.IGNORECASE):
+            start_line_break = re.search("\n\n", string[match.start()::-1])
+            end_line_break = re.search("\n\n", string[match.end():])
+            if start_line_break and end_line_break:
+                start_para = match.start() - start_line_break.start() + 1
+                end_para = match.end() + end_line_break.start()
+                matches.append({"start": start_para, "end": end_para})
+            else:
+                matches.append({"start": match.start(), "end": match.end()})
+    return matches
 
-    return matched_pairs
+"""
+import re
+from council.models import Agenda
+agenda = Agenda.objects.get(id=127)
+word = "Consideration"
+string = agenda.agenda_text
+match = re.search(word, string, re.IGNORECASE)
+start_line_break = re.search("\n\n", string[match.start()::-1])
+end_line_break = re.search("\n\n", string[match.end():])
+start_para = match.start() - start_line_break.start() + 1
+end_para = match.end() + end_line_break.start()
+print("{},{}".format(start_para, end_para))
+string[start_para:end_para]
+"""

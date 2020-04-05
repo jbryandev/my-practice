@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 from django.views import generic
 from council.models import Agency, Department, Agenda
-from council.tasks import convert_to_pdf, fetch_agendas
+from council.tasks import convert_pdf_to_text, fetch_agendas
 
 # Create your views here.
 
@@ -63,6 +63,6 @@ class AgendaConvertView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        result = convert_to_pdf.delay(context['agenda'].pk)
+        result = convert_pdf_to_text.delay(context['agenda'].pk)
         context['task_id'] = result.task_id
         return context

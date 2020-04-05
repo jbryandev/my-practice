@@ -16,8 +16,10 @@ class Command(BaseCommand):
             # Prepare an email
             self.stdout.write(f'Found {len(agendas)} new agendas. Sending summary email...')
             subject = "Council Insights: Agenda Report for {}".format(today.strftime("%m/%d/%y"))
-            text_body = "Found {} new agendas.\n\nAgenda Summary:\n".format(len(agendas))
-            html_body = "<p>Found {} new agendas.</p>\n".format(len(agendas))
+            text_body = "Council Insights: Agenda Report for {}\n\n".format(today.strftime("%m/%d/%y"))
+            text_body += "The following agendas were added:\n"
+            html_body = "<h4>Council Insights: Agenda Report for {}<h4>\n".format(today.strftime("%m/%d/%y"))
+            html_body += "<p>The following agendas were added:</p>\n"
             html_body += (
                 "<p>Agenda Summary:</p>\n"
                 "<ol>\n"
@@ -40,5 +42,5 @@ class Command(BaseCommand):
             html_body += "</ol>"
             mailer.send(subject, text_body, html_body)
         else:
-            self.stdout.write("No new agendas found. No email will be sent.")
+            self.stdout.write("No new agendas found. No summary email will be sent.")
         self.stdout.write("---COMPLETED EMAIL SUMMARY TASK---")
