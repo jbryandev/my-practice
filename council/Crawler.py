@@ -1,3 +1,4 @@
+import sys
 from abc import ABC, abstractmethod
 from datetime import datetime
 from django.utils import timezone
@@ -23,23 +24,35 @@ class Crawler(ABC):
     def crawl(self):
 
         new_agendas = []
+        
+        try:
+            # Connect to City website and get page source
+            status = "Connecting to City website..."
+            self.progress_recorder.update(0, 10, status)
+            page_source = self.get_page_source(self.url)
+        except:
+            print("ERROR: Unable to get page_source.")
+            raise
 
-        # Connect to City website and get page source
-        status = "Connecting to City website..."
-        self.progress_recorder.update(0, 10, status)
-        page_source = self.get_page_source(self.url)
+        try:
+            # Parse the extracted page source
+            status = "Connection succeeded. Getting page data..."
+            self.progress_recorder.update(1, 10, status)
+            parsed_html = self.parse_html(page_source)
+        except:
+            print("ERROR: Unable to parse HTML.")
+            raise
 
-        # Parse the extracted page source
-        status = "Connection succeeded. Getting page data..."
-        self.progress_recorder.update(1, 10, status)
-        parsed_html = self.parse_html(page_source)
-
-        # Filter agendas that match desired criteria
-        status = "Searching for new {} agendas...".format(self.name)
-        self.progress_recorder.update(2, 10, status)
-        filtered_agendas = self.filter_agendas(parsed_html)
-        status = "Found {} new agenda(s).".format(len(filtered_agendas))
-        self.progress_recorder.update(3, 10, status)
+        try:
+            # Filter agendas that match desired criteria
+            status = "Searching for new {} agendas...".format(self.name)
+            self.progress_recorder.update(2, 10, status)
+            filtered_agendas = self.filter_agendas(parsed_html)
+            status = "Found {} new agenda(s).".format(len(filtered_agendas))
+            self.progress_recorder.update(3, 10, status)
+        except:
+            print("ERROR: Unable to filter agendas.")
+            raise
 
         # Loop over filtered agendas, parse out the info, and save to database
         i = 1
@@ -47,18 +60,26 @@ class Crawler(ABC):
         progress_length = len(filtered_agendas)*2 + 4
         for agenda in filtered_agendas:
             # Parse out agenda information
-            status = "Getting contents of agenda {} of {}...".format(i, len(filtered_agendas))
-            progress_step += 1
-            self.progress_recorder.update(progress_step, progress_length, status)
-            parsed_agenda = self.parse_agenda(agenda)
+            try:
+                status = "Getting contents of agenda {} of {}...".format(i, len(filtered_agendas))
+                progress_step += 1
+                self.progress_recorder.update(progress_step, progress_length, status)
+                parsed_agenda = self.parse_agenda(agenda)
+            except:
+                print("ERROR: Unable to parse agenda.")
+                raise
 
-            # Save agenda to database
-            status = "Saving agenda {} of {} to the database...".format(i, len(filtered_agendas))
-            progress_step += 1
-            self.progress_recorder.update(progress_step, progress_length, status)
-            new_agenda = self.create_new_agenda(parsed_agenda)
-            new_agenda.save()
-            new_agendas.append(new_agenda)
+            try:
+                # Save agenda to database
+                status = "Saving agenda {} of {} to the database...".format(i, len(filtered_agendas))
+                progress_step += 1
+                self.progress_recorder.update(progress_step, progress_length, status)
+                new_agenda = self.create_new_agenda(parsed_agenda)
+                new_agenda.save()
+                new_agendas.append(new_agenda)
+            except:
+                print("ERROR: Unable to save agenda.")
+                raise
             i += 1
         return new_agendas
 

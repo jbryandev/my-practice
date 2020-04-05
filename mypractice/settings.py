@@ -27,7 +27,8 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 DEBUG = bool(int(os.environ.get("DJANGO_DEBUG")))
 
 ALLOWED_HOSTS = []
-
+ADMINS = [('James', 'james.bryan.home@gmail.com'), ('James', 'james.bryan@kimley-horn.com')]
+MANAGERS = [('James', 'james.bryan.home@gmail.com'), ('James', 'james.bryan@kimley-horn.com')]
 
 # Application definition
 
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.common.BrokenLinkEmailsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
