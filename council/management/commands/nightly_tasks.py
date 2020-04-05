@@ -10,13 +10,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("---RUNNING COUNCIL-INSIGHTS NIGHTLY TASKS---")
         self.stdout.write("---Step 1: Fetch New Agendas---")
-        # self.nightly_fetch_agendas()
+        self.nightly_fetch_agendas()
         self.stdout.write("---Step 2: Convert PDFs to Text---")
         self.nightly_convert_pdf_to_text()
         self.stdout.write("---Step 3: Generate Highlights---")
-        # self.nightly_generate_highlights()
+        self.nightly_generate_highlights()
         self.stdout.write("---Step 4: Clean Out Old Agendas---")
-        # cleanup_old_agendas()
+        cleanup_old_agendas()
         self.stdout.write("---COMPLETED COUNCIL-INSIGHTS NIGHTLY TASKS---")
 
     @staticmethod
