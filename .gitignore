@@ -41,6 +41,7 @@ Thumbs.db
 ######################
 *.code-workspace
 /.vscode/*
+*.scratch
 
 # Python #
 ######################
