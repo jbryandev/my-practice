@@ -16,6 +16,7 @@ class PDFConverter:
         i = 1
         pdf_text = ""
         for image in images:
+            print("Processing image {} of {}...".format(i, len(images)))
             processed_image = self.process_image(image)
             pdf_text += "{}".format(self.extract_text(processed_image))
             i += 1
@@ -34,8 +35,11 @@ class PDFConverter:
         images = None
         fh, temp_filename = tempfile.mkstemp()
         with open(temp_filename, "wb") as f:
+            print("f.write")
             f.write(pdf_file.read())
+            print("f.flush")
             f.flush()
+            print("convert_from_path")
             images = convert_from_path(f.name)
         os.close(fh)
         os.remove(temp_filename)
