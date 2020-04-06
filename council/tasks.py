@@ -74,8 +74,6 @@ def generate_highlights(self, agenda_id):
         )
         progress_recorder.update(1, 4, status)
         keyphrases = Keyphrase.objects.all()
-        status = "Searching agenda for keyphrases..."
-        progress_recorder.update(2, 4, status)
         if agenda.agenda_text:
             new_highlights = highlights.create_highlights(agenda, keyphrases)
         else:
@@ -94,18 +92,18 @@ def cleanup_old_agendas(self, max_days_old=30):
     try:
         progress_recorder = CouncilRecorder(self)
         progress_recorder.update(0, 15, "Searching for old agendas...")
-        print("Cutoff date: {}".format(
-            datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)))
-        old_agendas = Agenda.objects.filter(
-            agenda_date__lte=datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)
-        )
+        cutoff_date = datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)
+        print("Cutoff date: {}".format(cutoff_date.strftime("%m/%d/%y")))
+        old_agendas = Agenda.objects.filter(agenda_date__lte=cutoff_date)
         print("Found {} that are older than the cutoff date.".format(
             len(old_agendas)))
-        i = 1
         for agenda in old_agendas:
-            print("Deleting agenda {} of {}...".format(i, len(old_agendas)))
+            print("Deleting agenda: {} - {} - {}...".format(
+                agenda.department.agency,
+                agenda.department,
+                agenda
+            ))
             agenda.delete()
-            i += 1
         return "Cleanup of old agendas complete."
     except:
         # Pass on exception to be handled by calling function
