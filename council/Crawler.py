@@ -80,7 +80,7 @@ class Crawler(ABC):
                 print("ERROR: Unable to save agenda.")
                 raise
             i += 1
-        return new_agendas
+        return "Done."
 
     def get_page_source(self, url):
         return self.request(url).text

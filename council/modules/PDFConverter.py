@@ -62,7 +62,7 @@ class PDFConverter:
         except:
             print("ERROR: Unable to save agenda text.")
             raise
-        return self.agenda
+        return "Done."
 
     def request_pdf(self):
         return requests.get(self.pdf_url)
