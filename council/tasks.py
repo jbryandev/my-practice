@@ -53,6 +53,7 @@ def generate_highlights(self, agenda_id):
             new_highlights = []
             status = "Agenda text has not been generated yet. Exiting..."
             progress_recorder.update(3, 4, status)
+        return "Generated {} highlight(s).".format(len(new_highlights))
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion
