@@ -48,6 +48,7 @@ class Crawler(ABC):
             self.progress_recorder.update(2, 10, status)
             filtered_agendas = self.filter_agendas(parsed_html)
             status = "Found {} new agenda(s).".format(len(filtered_agendas))
+            print(status)
             self.progress_recorder.update(3, 10, status)
         except:
             print("ERROR: Unable to filter agendas.")

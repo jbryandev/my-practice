@@ -19,6 +19,7 @@ class PDFConverter:
             self.agenda.department,
             self.agenda
         )
+        print(status)
         self.progress_recorder.update(0, 5, status)
 
         try:
@@ -32,7 +33,6 @@ class PDFConverter:
         try:
             self.progress_recorder.update(2, 5, "Converting PDF into images...")
             images = self.get_images(file)
-            print("({} image(s) created)".format(len(images)))
         except:
             print("ERROR: Unable to create images.")
             raise
@@ -53,7 +53,6 @@ class PDFConverter:
             match = re.search("adjourn", pdf_text, re.IGNORECASE)
             if match:
                 # Stop extracting when "adjorn" text is found (aka the end of the agenda)
-                print("Adjourn keyword found. No further extraction necessary.")
                 break
         try:
             self.agenda.agenda_text = pdf_text

@@ -11,7 +11,7 @@ class TulsaCrawler(Crawler):
 
     def get_page_source(self, url):
         browser = self.get_browser(url)
-        timeout = 10
+        timeout = 20
         try:
             # Tulsa uses iframes
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("iframe"))
@@ -28,10 +28,14 @@ class TulsaCrawler(Crawler):
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("table"))
             # Get source of resulting search page
             page_source = browser.page_source
-            browser.quit()
             return page_source
         except TimeoutException:
-            print("Timed out waiting for page to load")
+            print("ERROR: Timed out waiting for page to load")
+            raise
+        except:
+            print("ERROR: Coud not get page source.")
+            raise
+        finally:
             browser.quit()
 
     def filter_agendas(self, parsed_html):

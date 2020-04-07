@@ -27,7 +27,12 @@ def create_highlights(agenda, keyphrases):
         for keyphrase in keyphrases:
             matches = match_lines(agenda.agenda_text, keyphrase.phrase)
             if matches:
-                print("(Keyphrase: {}) Matches found.".format(keyphrase.phrase))
+                print("(Keyphrase: {}) Matches found. ({} - {}: {})".format(
+                    keyphrase.phrase,
+                    agenda.department.agency,
+                    agenda.department,
+                    agenda
+                ))
                 for match in matches:
                     if not highlight_exists(agenda, match.get("start"), match.get("end"), keyphrase.category):
                         new_highlight = Highlight(
