@@ -40,13 +40,13 @@ class PDFConverter:
         self.progress_recorder.update(3, 5, "Extracting text using OCR...")
         pdf_text = ""
         for image in images:
+            # try:
+            #     processed_image = self.process_image(image)
+            # except:
+            #     print("ERROR: Unable to pre-process image.")
+            #     raise
             try:
-                processed_image = self.process_image(image)
-            except:
-                print("ERROR: Unable to pre-process image.")
-                raise
-            try:
-                pdf_text += "{}".format(self.extract_text(processed_image))
+                pdf_text += "{}".format(self.extract_text(image))
             except:
                 print("ERROR: Unable to extract text.")
                 raise
