@@ -1,53 +1,85 @@
-import io, os, re, requests, tempfile
-from pdf2image import convert_from_path
+import io, re, requests
+from pdf2image import convert_from_bytes
 import pytesseract
 from .ImageProcessor import ImageProcessor
 
 class PDFConverter:
 
-    def __init__(self, pdf_url,):
-        self.pdf_url = pdf_url
-        self.temp_dir = tempfile.TemporaryDirectory()
+    def __init__(self, agenda, progress_recorder):
+        self.agenda = agenda
+        self.pdf_url = agenda.pdf_link
+        self.progress_recorder = progress_recorder
+
+    def __repr__(self):
+        return "{} Agenda PDFConverter".format(str(self.agenda))
 
     def convert_pdf(self):
-        request = self.request_pdf()
-        file = self.read_pdf(request)
-        images = self.get_images(file)
-        i = 1
+        status = "Converting {} - {}: {}".format(
+            self.agenda.department.agency,
+            self.agenda.department,
+            self.agenda
+        )
+        self.progress_recorder.update(0, 5, status)
+
+        try:
+            self.progress_recorder.update(1, 5, "Downloading PDF file...")
+            request = self.request_pdf()
+            file = self.read_pdf(request)
+        except:
+            print("ERROR: Unable to download PDF file.")
+            raise
+
+        try:
+            self.progress_recorder.update(2, 5, "Converting PDF into images...")
+            images = self.get_images(file)
+            print("({} images created)".format(len(images)))
+        except:
+            print("ERROR: Unable to create images.")
+            raise
+
+        self.progress_recorder.update(3, 5, "Extracting text using OCR...")
         pdf_text = ""
         for image in images:
-            print("Processing image {} of {}...".format(i, len(images)))
-            processed_image = self.process_image(image)
-            pdf_text += "{}".format(self.extract_text(processed_image))
-            i += 1
+            try:
+                processed_image = self.process_image(image)
+            except:
+                print("ERROR: Unable to pre-process image.")
+                raise
+            try:
+                pdf_text += "{}".format(self.extract_text(processed_image))
+            except:
+                print("ERROR: Unable to extract text.")
+                raise
             match = re.search("adjourn", pdf_text, re.IGNORECASE)
             if match:
+                # Stop extracting when "adjorn" text is found (aka the end of the agenda)
+                print("Adjourn keyword found. No further extraction necessary.")
                 break
-        return pdf_text
+        try:
+            self.agenda.agenda_text = pdf_text
+            self.progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
+            self.agenda.save()
+        except:
+            print("ERROR: Unable to save agenda text.")
+            raise
+        return self.agenda
 
     def request_pdf(self):
         return requests.get(self.pdf_url)
 
-    def read_pdf(self, request):
+    @staticmethod
+    def read_pdf(request):
         return io.BytesIO(request.content)
 
-    def get_images(self, pdf_file):
-        images = None
-        fh, temp_filename = tempfile.mkstemp()
-        with open(temp_filename, "wb") as f:
-            print("f.write")
-            f.write(pdf_file.read())
-            print("f.flush")
-            f.flush()
-            print("convert_from_path")
-            images = convert_from_path(f.name)
-        os.close(fh)
-        os.remove(temp_filename)
-        return images
+    @staticmethod
+    def get_images(pdf_file):
+        return convert_from_bytes(pdf_file.read(), last_page=20)
 
-    def process_image(self, pdf_image):
+    @staticmethod
+    def process_image(pdf_image):
         processor = ImageProcessor(pdf_image)
         return processor.process()
 
-    def extract_text(self, pdf_image):
+    @staticmethod
+    def extract_text(pdf_image):
         return pytesseract.image_to_string(pdf_image)

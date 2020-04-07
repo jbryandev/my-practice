@@ -1,5 +1,4 @@
 """ Task Module for Celery """
-import re, sys
 from datetime import datetime, timedelta
 from celery import shared_task
 from django.shortcuts import get_object_or_404
@@ -10,54 +9,28 @@ from council.modules.CouncilRecorder import CouncilRecorder
 from council import CrawlerFactory, highlights
 
 @shared_task(bind=True)
-def convert_pdf_to_text(self, agenda_id):
-    """ Convert agenda PDF to text in the background using celery """
+def fetch_agendas(self, dept_id):
+    """ Fetch new agendas for a given department via celery """
     try:
-        agenda = Agenda.objects.get(pk=agenda_id)
         progress_recorder = CouncilRecorder(self)
-        status = "Converting {} - {}: {} PDF to text...".format(
-            agenda.department.agency,
-            agenda.department,
-            agenda
-        )
-        progress_recorder.update(0, 5, status)
-        progress_recorder.update(1, 5, "Downloading PDF file...")
-        pdf_converter = PDFConverter(agenda.pdf_link)
-        request = pdf_converter.request_pdf()
-        file = pdf_converter.read_pdf(request)
-
-        progress_recorder.update(2, 5, "Converting PDF into images...")
-        images = pdf_converter.get_images(file)
-
-        progress_recorder.update(3, 5, "Extracting text using OCR...")
-        pdf_text = ""
-        for image in images:
-            processed_image = pdf_converter.process_image(image)
-            pdf_text += "{}".format(pdf_converter.extract_text(processed_image))
-            match = re.search("adjourn", pdf_text, re.IGNORECASE)
-            if match:
-                # Stop extracting when "adjorn" text is found (aka the end of the agenda)
-                break
-
-        agenda.agenda_text = pdf_text
-        progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
-        agenda.save()
-        return "PDF conversion complete."
+        department = get_object_or_404(Department, pk=dept_id)
+        crawler = CrawlerFactory.create_crawler(department, progress_recorder)
+        new_agendas = crawler.crawl()
+        return "Fetch agendas complete.", {"agendas": new_agendas}
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion
         raise
 
 @shared_task(bind=True)
-def fetch_agendas(self, dept_id):
-    """ Fetch new agendas for a given department via celery """
+def convert_pdf_to_text(self, agenda_id):
+    """ Convert agenda PDF to text in the background using celery """
     try:
         progress_recorder = CouncilRecorder(self)
-        department = get_object_or_404(Department, pk=dept_id)
-        print("Fetching agendas for {} - {}".format(department.agency, department.department_name))
-        crawler = CrawlerFactory.create_crawler(department, progress_recorder)
-        new_agendas = crawler.crawl()
-        return "Fetch agendas complete.", {"agendas": new_agendas}
+        agenda = get_object_or_404(Agenda, pk=agenda_id)
+        converter = PDFConverter(agenda, progress_recorder)
+        converted_agenda = converter.convert_pdf()
+        return "PDF conversion complete.", {"agenda": converted_agenda}
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion

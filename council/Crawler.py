@@ -1,4 +1,3 @@
-import sys
 from abc import ABC, abstractmethod
 from datetime import datetime
 from django.utils import timezone
@@ -22,9 +21,9 @@ class Crawler(ABC):
         return self.name
 
     def crawl(self):
-
+        print("Fetching agendas for {} - {}".format(
+            self.department.agency, self.department.department_name))
         new_agendas = []
-        
         try:
             # Connect to City website and get page source
             status = "Connecting to City website..."
