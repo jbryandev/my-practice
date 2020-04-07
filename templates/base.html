@@ -23,8 +23,8 @@
   {% if user.is_authenticated %}
     <div class="container text-muted">
       <hr></hr>
-      <a href="{% url 'logout' %}">Logout</a> | 
-      <a href="{% url 'admin:index' %}">Admin</a>
+      <p><a href="{% url 'logout' %}">Logout</a> | 
+      <a href="{% url 'admin:index' %}">Admin</a></p>
     </div>
   {% endif %}
 </footer>

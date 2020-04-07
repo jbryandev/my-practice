@@ -32,9 +32,6 @@ class TulsaCrawler(Crawler):
         except TimeoutException:
             print("ERROR: Timed out waiting for page to load")
             raise
-        except:
-            print("ERROR: Coud not get page source.")
-            raise
         finally:
             browser.quit()
 
