@@ -50,7 +50,9 @@ class Command(BaseCommand):
     def nightly_generate_highlights():
         today = datetime.now(tz=timezone.get_current_timezone())
         agendas = Agenda.objects.filter(date_added__date=today.date())
+        print("Checking for agendas added today...")
         if agendas:
+            print("Agendas added. Generating highlights...")
             for agenda in agendas:
                 try:
                     generate_highlights(agenda.id)
