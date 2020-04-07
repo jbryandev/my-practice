@@ -11,11 +11,11 @@ class TulsaCrawler(Crawler):
 
     def get_page_source(self, url):
         browser = self.get_browser(url)
-        timeout = 20
+        timeout = 30
         try:
             # Tulsa uses iframes
-            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("iframe"))
-            browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))
+            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("form"))
+            # browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))
             # Have to search by current month and year, so populate those in the form
             current_month = str(self.get_current_date().strftime("%B"))
             current_year = str(self.get_current_date().year)
