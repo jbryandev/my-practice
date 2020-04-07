@@ -16,6 +16,7 @@ def fetch_agendas(self, dept_id):
         department = get_object_or_404(Department, pk=dept_id)
         crawler = CrawlerFactory.create_crawler(department, progress_recorder)
         new_agendas = crawler.crawl()
+        return "Fetch agendas complete."
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion
@@ -29,6 +30,7 @@ def convert_pdf_to_text(self, agenda_id):
         agenda = get_object_or_404(Agenda, pk=agenda_id)
         converter = PDFConverter(agenda, progress_recorder)
         converted_agenda = converter.convert_pdf()
+        return "PDF conversion complete."
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion

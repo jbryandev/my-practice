@@ -32,7 +32,7 @@ class PDFConverter:
         try:
             self.progress_recorder.update(2, 5, "Converting PDF into images...")
             images = self.get_images(file)
-            print("({} images created)".format(len(images)))
+            print("({} image(s) created)".format(len(images)))
         except:
             print("ERROR: Unable to create images.")
             raise
@@ -40,11 +40,11 @@ class PDFConverter:
         self.progress_recorder.update(3, 5, "Extracting text using OCR...")
         pdf_text = ""
         for image in images:
-            # try:
-            #     processed_image = self.process_image(image)
-            # except:
-            #     print("ERROR: Unable to pre-process image.")
-            #     raise
+            try:
+                processed_image = self.process_image(image)
+            except:
+                print("ERROR: Unable to pre-process image.")
+                raise
             try:
                 pdf_text += "{}".format(self.extract_text(image))
             except:
