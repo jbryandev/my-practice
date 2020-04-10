@@ -3,7 +3,7 @@
 
 {% load customtags %}
 
-{% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | Agenda Detail{% endblock %}
+{% block title %} | Council Insights | {{ agenda.department.agency.agency_name }} | {{ agenda.department.department_name }} | {{ agenda.agenda_date|date:"m/d/y" }} Agenda Detail{% endblock %}
 
 {% block content %}
 {% load breadcrumbs %}
@@ -23,41 +23,92 @@
 
 <!-- Highlights -->
 <div class="card border-light mb-3">
-    <h5 class="card-header">Highlights</h5>
+    <h5 class="card-header">Highlights
+        <small class="mt-1 text-muted" style="float: right;"><a href="{% url 'council:highlight' agenda.id %}">Generate Highlights</a></small>
+    </h5>
     <div class="card-body">
+    {% if highlight_task_id %}
+        {% load static %}
+        <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
+        <div class='progress' style="height: 20px;">
+            <div id='highlight-progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+        </div>
+        <div id="highlight-progress-message">Preparing to generate highlights...</div>
+        <div id="highlight-celery-result"></div>
+        <script>
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            function customProgress(progressBarElement, progressBarMessageElement, progress) {
+                progressBarElement.style.backgroundColor = '#68a9ef';
+                if (progress.description != undefined) {
+                    progressBarElement.style.width = progress.percent + "%";
+                    var description = progress.description;
+                    progressBarMessageElement.innerHTML = description;
+                }
+            }
+            function customSuccess(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#76ce60';
+                progressBarElement.style.width = "100%";
+                progressBarMessageElement.innerHTML = "Complete. Refreshing highlight display...";
+                
+            }
+            function customError(progressBarElement, progressBarMessageElement) {
+                progressBarElement.style.backgroundColor = '#dc4f63';
+                progressBarMessageElement.innerHTML = "A problem was encountered while trying to generate highlights.";
+            }
+            async function customResult(resultElement, result) {
+                await sleep(3000);
+                window.location.replace("{% url 'council:agenda-detail' agenda.id %}");
+            }
+            document.addEventListener("DOMContentLoaded", function () {
+                var progressUrl = "{% url 'celery_progress:task_status' highlight_task_id %}";
+                CeleryProgressBar.initProgressBar(
+                    progressUrl,
+                    {
+                        progressBarId: 'highlight-progress-bar',
+                        progressBarMessageId: 'highlight-progress-message',
+                        resultElementId: 'highlight-celery-result',
+                        onProgress: customProgress,
+                        onSuccess: customSuccess,
+                        onError: customError,
+                        onResult: customResult
+                    });
+            });
+        </script>
+    {% else %}
         {% if agenda.highlights.all %}
-        {% for highlight in agenda.highlights.all %}
-            <p>{{ highlight }}</p>
-        {% endfor %}
+            <ul>
+            {% for highlight in agenda.highlights.all %}
+                <li><a href="#{{ highlight.id }}">{{ agenda.agenda_text|hl_slice:highlight|truncatechars:500 }}</a></li>
+            {% endfor %}
+            </ul>
         {% else %}
-            <p>No items of note found in this agenda.</p>
+            There are no highlights for this document based on current keyphrases, or highlights have not yet been generated.
         {% endif %}
+    {% endif %}
     </div>
 </div>
 
 <!-- Agenda Content -->
 <div class="card border-light mb-3">
     <h5 class="card-header">Agenda Content
-        {% if agenda.pdf_link %}
+    {% if agenda.pdf_link %}
         <small class="mt-1 text-muted" style="float: right;"><a href="{{ agenda.pdf_link }}" target="_blank">Download PDF</a></small>
-        {% endif %}
+    {% endif %}
     </h5>
     <div class="card-body">
     {% if agenda.agenda_text %}
-        <p>
-        {% autoescape off %}
-        {{ agenda.agenda_text|highlight:agenda.id|linebreaks }}
-        {% endautoescape %}
-        </p>
+        {{ agenda.agenda_text|highlight:agenda.id|safe }}
     {% else %}
-        {% if task_id %}
+        {% if convert_task_id %}
             {% load static %}
             <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
             <div class='progress' style="height: 20px;">
-                <div id='progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
+                <div id='convert-progress-bar' class='progress-bar progress-bar-striped progress-bar-animated' style="width: 0%;">&nbsp;</div>
             </div>
-            <div id="progress-bar-message">Attempting to connect...</div>
-            <div id="celery-result"></div>
+            <div id="convert-progress-message">Attempting to connect...</div>
+            <div id="convert-celery-result"></div>
             <script>
                 function sleep(ms) {
                     return new Promise(resolve => setTimeout(resolve, ms));
@@ -85,10 +136,13 @@
                     window.location.replace("{% url 'council:agenda-detail' agenda.id %}");
                 }
                 document.addEventListener("DOMContentLoaded", function () {
-                    var progressUrl = "{% url 'celery_progress:task_status' task_id %}";
+                    var progressUrl = "{% url 'celery_progress:task_status' convert_task_id %}";
                     CeleryProgressBar.initProgressBar(
                         progressUrl,
                         {
+                            progressBarId: 'convert-progress-bar',
+                            progressBarMessageId: 'convert-progress-message',
+                            resultElementId: 'convert-celery-result',
                             onProgress: customProgress,
                             onSuccess: customSuccess,
                             onError: customError,

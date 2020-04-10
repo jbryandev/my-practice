@@ -21,7 +21,7 @@ class Crawler(ABC):
         return self.name
 
     def crawl(self):
-        print("Fetching agendas for {} - {}".format(
+        print("Fetching agendas for {} - {}...".format(
             self.department.agency, self.department.department_name))
         new_agendas = []
         try:
@@ -57,7 +57,7 @@ class Crawler(ABC):
         # Loop over filtered agendas, parse out the info, and save to database
         i = 1
         progress_step = 3
-        progress_length = len(filtered_agendas)*2 + 4
+        progress_length = len(filtered_agendas)*3 + 4
         for agenda in filtered_agendas:
             # Parse out agenda information
             try:

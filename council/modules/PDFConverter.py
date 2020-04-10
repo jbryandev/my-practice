@@ -1,9 +1,11 @@
+from abc import ABC
 import io, re, requests
 from pdf2image import convert_from_bytes
 import pytesseract
+from django.utils.html import linebreaks
 from .ImageProcessor import ImageProcessor
 
-class PDFConverter:
+class PDFConverter(ABC):
 
     def __init__(self, agenda, progress_recorder):
         self.agenda = agenda
@@ -13,7 +15,7 @@ class PDFConverter:
     def __repr__(self):
         return "{} Agenda PDFConverter".format(str(self.agenda))
 
-    def convert_pdf(self):
+    def convert(self):
         status = "Converting {} - {}: {}".format(
             self.agenda.department.agency,
             self.agenda.department,
@@ -38,7 +40,6 @@ class PDFConverter:
             raise
 
         self.progress_recorder.update(3, 5, "Extracting text using OCR...")
-        pdf_text = ""
         for image in images:
             try:
                 processed_image = self.process_image(image)
@@ -46,7 +47,7 @@ class PDFConverter:
                 print("ERROR: Unable to pre-process image.")
                 raise
             try:
-                pdf_text += "{}".format(self.extract_text(image))
+                pdf_text += "{}".format(self.extract_text(processed_image))
             except:
                 print("ERROR: Unable to extract text.")
                 raise
@@ -55,7 +56,8 @@ class PDFConverter:
                 # Stop extracting when "adjorn" text is found (aka the end of the agenda)
                 break
         try:
-            self.agenda.agenda_text = pdf_text
+            formatted_text = self.format_text(pdf_text)
+            self.agenda.agenda_text = linebreaks(formatted_text)
             self.progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
             self.agenda.save()
         except:
@@ -82,3 +84,8 @@ class PDFConverter:
     @staticmethod
     def extract_text(pdf_image):
         return pytesseract.image_to_string(pdf_image)
+
+    @staticmethod
+    def format_text(pdf_text):
+        # This method should be overriden by any subclasses
+        return pdf_text

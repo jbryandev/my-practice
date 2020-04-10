@@ -1,7 +1,7 @@
 import re
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.common.exceptions import TimeoutException
-from council.Crawler import Crawler
+from council.modules.Crawler import Crawler
 
 class TulsaCrawler(Crawler):
 
@@ -10,6 +10,7 @@ class TulsaCrawler(Crawler):
         self.set_strainer("table")
 
     def get_page_source(self, url):
+        self.progress_recorder.update(1, 20, "Opening browser instance...")
         browser = self.get_browser(url)
         timeout = 30
         try:

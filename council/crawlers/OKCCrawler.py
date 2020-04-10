@@ -1,8 +1,9 @@
 import re
+import unicodedata
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import Tag
-from council.Crawler import Crawler
+from council.modules.Crawler import Crawler
 
 class OKCCrawler(Crawler):
 
@@ -11,6 +12,7 @@ class OKCCrawler(Crawler):
         self.set_strainer("tr", class_="public_meeting")
 
     def get_page_source(self, url):
+        self.progress_recorder.update(1, 20, "Opening browser instance...")
         browser = self.get_browser(url)
         timeout = 10
         try:
@@ -25,7 +27,7 @@ class OKCCrawler(Crawler):
     def filter_agendas(self, parsed_html):
         filtered_agendas = []
         # Limit search to 20 most-recent agendas
-        rows = parsed_html.find_all("tr", limit=20)
+        rows = parsed_html.find_all("tr", limit=50)
         for agenda in rows:
             # Split up agenda discription into string components
             agenda_strings = agenda.text.strip().split("\n")
@@ -56,7 +58,7 @@ class OKCCrawler(Crawler):
     def parse_agenda(self, agenda):
         # Get contents of agenda
         browser = self.get_browser(agenda.get("agenda_url"))
-        self.set_strainer("div")
+        self.set_strainer("table", class_="MsoNormalTable")
         soup = self.get_soup(browser.page_source, "html.parser", parse_only=self.strainer)
         browser.quit()
         agenda_text = self.get_agenda_text(soup)
@@ -79,30 +81,29 @@ class OKCCrawler(Crawler):
 
     @staticmethod
     def get_agenda_text(soup):
-        # The last item in soup.contents is the agenda text we want
-        agenda_content = soup.contents[len(soup.contents)-1]
         strings = []
         # BS4 has trouble processing tables;
         # Loop over agenda content and fix the tables
-        for row in agenda_content:
+        for row in soup.contents:
             if isinstance(row, Tag):
                 col = row.find_all("td")
                 if col:
                     if len(col) > 1:
-                        if 100 < int(col[0]['width']) < 300:
-                            strings.append("<tr><td style=\"width: 10\"><td style=\"width: 10\"></td></td><td style=\"width: 10\">{}</td><td>{}</td></tr>".format(
+                        if int(col[0]['width']) > 300:
+                            strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
+                        elif 100 < int(col[0]['width']) < 300:
+                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.50in\">{} {}</div>\n\n".format(
                                 col[0].text.strip(), col[1].text.strip()))
                         elif 60 < int(col[0]['width']) < 100:
-                            strings.append("<tr><td style=\"width: 10\"></td><td style=\"width: 10\">{}</td><td colspan=\"2\">{}</td></tr>".format(
-                                col[0].text.strip(), col[1].text.strip()))
+                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
                         elif int(col[0]['width']) < 60:
-                            strings.append("<tr><td style=\"width: 10\">{}</td><td colspan=\"3\">{}</td></tr>".format(col[0].text.strip(), col[1].text.strip()))
+                            strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
                     else:
-                        strings.append("<tr><td colspan=\"4\">{}</td></tr>".format(col[0].text.strip()))
-                else:
-                    strings.append("<tr><td colspan=\"4\">{}</td></tr>".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                        if col[0].text.strip():
+                            strings.append("<div class=\"mb-3\">{}</div>\n\n".format(col[0].text.strip()))
+                # else:
+                #     strings.append("<div>{}</div>\n\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
         # Join the rows of body text together into one string, and then put the header and body
         # text together to create agenda_text
-        body = "".join(strings)
-        agenda_text = "<table>{}</table>".format(body)
+        agenda_text = unicodedata.normalize("NFKD", "".join(strings))
         return agenda_text

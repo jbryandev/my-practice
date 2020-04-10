@@ -57,7 +57,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class HighlightAdmin(admin.ModelAdmin):
     """ Admin model for Highlight class """
     ordering = ['pk']
-    list_display = ('__str__', 'category', 'get_agency', 'get_department')
+    list_display = ('__str__', 'category', 'agenda', 'get_agency', 'get_department')
     list_filter = ['category']
 
     def get_queryset(self, request):

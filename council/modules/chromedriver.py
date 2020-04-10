@@ -14,8 +14,8 @@ def set_chrome_options():
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
-    # This prevents unpacked extensions error dialog box from popping up
-    chrome_options.add_experimental_option("useAutomationExtension", False)
+    chrome_options.add_experimental_option("useAutomationExtension", False) # Avoids unpacked extensions error dialog box
+    chrome_options.add_experimental_option("excludeSwitches", ['enable-logging']) # Silences devtools listening alert
 
     return chrome_options
 

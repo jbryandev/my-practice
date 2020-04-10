@@ -23,21 +23,19 @@
 <!-- Meeting information -->
 <div class="card border-light mb-3">
     <h5 class="card-header">Meeting Information</h5>
-    <div class="card-body">
-        {{ department.meeting_info|linebreaks }}
-    </div>
+    <div class="card-body">{{ department.meeting_info }}</div>
 </div>
 {% endif %}
 
 <!-- List agendas -->
 <div class="card border-light mb-3">
-    <h5 class="card-header">Agendas
-        {% if department.agendas_url %}
-        <small class="mt-1 text-muted" style="float: right;"><a href="{{ department.agendas_url }}" target="_blank">City Website</a> | 
-            <a href="{% url 'council:fetch-agendas' department.id %}">Fetch New Agendas</a>
-        </small>
-        {% endif %}
-    </h5>
+<h5 class="card-header">Agendas
+{% if department.agendas_url %}
+    <small class="mt-1 text-muted" style="float: right;"><a href="{{ department.agendas_url }}" target="_blank">City Website</a> | 
+        <a href="{% url 'council:fetch-agendas' department.id %}">Fetch New Agendas</a>
+    </small>
+{% endif %}
+</h5>
         
     <div class="card-body">
         {% if task_id %}

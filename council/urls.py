@@ -10,4 +10,5 @@ urlpatterns = [
     path('agenda/<int:pk>/', views.AgendaView.as_view(), name='agenda-detail'),
     path('department/<int:pk>/fetch', views.DepartmentFetchView.as_view(), name='fetch-agendas'),
     path('agenda/<int:pk>/convert', views.AgendaConvertView.as_view(), name='convert-pdf'),
+    path('agenda/<int:pk>/highlight', views.AgendaHighlightView.as_view(), name='highlight'),
 ]

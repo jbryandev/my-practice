@@ -1,6 +1,7 @@
 import re
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.utils.html import strip_tags
 from ..models import Highlight, Agenda
 
 register = template.Library()
@@ -14,7 +15,7 @@ def highlight(text, agenda_id):
 
     for hl in highlights:
         hl_text = text[hl.start + add_length:hl.end + add_length]
-        hl_marked = '<mark>' + hl_text + '</mark>'
+        hl_marked = '<div id="{}" style="background-color: #FFFF00">{}</div>'.format(hl.id, hl_text)
         begin = text[:hl.start + add_length]
         middle = hl_marked
         end = text[hl.end + add_length:]
@@ -22,5 +23,18 @@ def highlight(text, agenda_id):
         add_length += len(hl_marked) - len(hl_text)
 
     return text
+
+@register.filter
+@stringfilter
+def hl_slice(agenda_text, highlight):
+    """
+    Returns the agenda text, sliced based on the highlight range.
+    """
+    try:
+        new_text = strip_tags(agenda_text[highlight.start:highlight.end])
+        return new_text
+
+    except (ValueError, TypeError):
+        return highlight  # Fail silently.
 
 register.filter(highlight)

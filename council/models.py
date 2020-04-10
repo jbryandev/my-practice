@@ -103,6 +103,9 @@ class Highlight(models.Model):
     It is marked by a start and end string position within the agenda.
     A highlight belongs to only one agenda, but an agenda can have many highlights.
     """
+    class Meta:
+        ordering = ('pk', 'date_added')
+
     date_added = models.DateTimeField(null=True, blank=True)
     start = models.PositiveIntegerField("highlight start")
     end = models.PositiveIntegerField("highlight end")
@@ -124,7 +127,7 @@ class Keyphrase(models.Model):
     Keyphrase matches form the basis for generating highlights.
     """
     class Meta:
-        ordering = ('phrase', 'date_added')
+        ordering = ('category', 'phrase', 'date_added')
 
     phrase = models.CharField(
         "keyphrase", max_length=200, null=False, blank=False)

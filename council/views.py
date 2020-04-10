@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 from django.views import generic
 from council.models import Agency, Department, Agenda
-from council.tasks import convert_pdf_to_text, fetch_agendas
+from council.tasks import convert_pdf_to_text, fetch_agendas, generate_highlights
 
 # Create your views here.
 
@@ -64,5 +64,16 @@ class AgendaConvertView(generic.DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         result = convert_pdf_to_text.delay(context['agenda'].pk)
-        context['task_id'] = result.task_id
+        context['convert_task_id'] = result.task_id
+        return context
+
+class AgendaHighlightView(generic.DetailView):
+    """ View for the agenda generate highlights page """
+    model = Agenda
+    template_name = 'council/agenda_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        result = generate_highlights.delay(context['agenda'].pk)
+        context['highlight_task_id'] = result.task_id
         return context

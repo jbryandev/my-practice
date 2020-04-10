@@ -4,9 +4,10 @@ from celery import shared_task
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department, Keyphrase
+from council.modules.CrawlerFactory import CrawlerFactory
 from council.modules.PDFConverter import PDFConverter
 from council.modules.CouncilRecorder import CouncilRecorder
-from council import CrawlerFactory, highlights
+from council.modules.Highlighter import Highlighter
 
 @shared_task(bind=True)
 def fetch_agendas(self, dept_id):
@@ -14,7 +15,8 @@ def fetch_agendas(self, dept_id):
     try:
         progress_recorder = CouncilRecorder(self)
         department = get_object_or_404(Department, pk=dept_id)
-        crawler = CrawlerFactory.create_crawler(department, progress_recorder)
+        crawler_factory = CrawlerFactory(department, progress_recorder)
+        crawler = crawler_factory.create_crawler()
         crawler.crawl()
         return "Fetch agendas complete."
     except:
@@ -29,7 +31,7 @@ def convert_pdf_to_text(self, agenda_id):
         progress_recorder = CouncilRecorder(self)
         agenda = get_object_or_404(Agenda, pk=agenda_id)
         converter = PDFConverter(agenda, progress_recorder)
-        converter.convert_pdf()
+        converter.convert()
         return "PDF conversion complete."
     except:
         # Pass on exception to be handled by calling function
@@ -40,34 +42,25 @@ def convert_pdf_to_text(self, agenda_id):
 def generate_highlights(self, agenda_id):
     """ Searches for and generates new highlights for a given agenda """
     try:
-        agenda = get_object_or_404(Agenda, pk=agenda_id)
         progress_recorder = CouncilRecorder(self)
-        status = "Generating highlights for {} - {}: {}".format(
-            agenda.department.agency, agenda.department, agenda
-        )
-        progress_recorder.update(1, 4, status)
-        keyphrases = Keyphrase.objects.all()
-        if agenda.agenda_text:
-            new_highlights = highlights.create_highlights(agenda, keyphrases)
-        else:
-            new_highlights = []
-            status = "Agenda text has not been generated yet. Exiting..."
-            progress_recorder.update(3, 4, status)
-        return "Generated {} highlight(s).".format(len(new_highlights))
+        agenda = get_object_or_404(Agenda, pk=agenda_id)
+        highlighter = Highlighter(agenda, progress_recorder)
+        highlighter.highlight()
+        return "Highlight process complete."
     except:
         # Pass on exception to be handled by calling function
         # This ensures that celery task does not reach completion
         raise
 
 @shared_task(bind=True)
-def cleanup_old_agendas(self, max_days_old=30):
+def cleanup_old_agendas(self, max_days_old=31):
     """ Delete agendas older than max days old """
     try:
         progress_recorder = CouncilRecorder(self)
         progress_recorder.update(0, 15, "Searching for old agendas...")
         cutoff_date = datetime.now(tz=get_current_timezone())-timedelta(days=max_days_old)
         print("Cutoff date: {}".format(cutoff_date.strftime("%m/%d/%y")))
-        old_agendas = Agenda.objects.filter(agenda_date__lte=cutoff_date)
+        old_agendas = Agenda.objects.filter(agenda_date__lt=cutoff_date)
         print("Found {} that are older than the cutoff date.".format(
             len(old_agendas)))
         for agenda in old_agendas:

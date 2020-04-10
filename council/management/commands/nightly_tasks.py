@@ -1,6 +1,7 @@
 import sys
 from datetime import datetime
 from django.utils import timezone
+from django.utils.text import Truncator
 from django.core.management.base import BaseCommand
 from council.tasks import fetch_agendas, convert_pdf_to_text, \
     generate_highlights, cleanup_old_agendas
@@ -32,7 +33,7 @@ class Command(BaseCommand):
             try:
                 fetch_agendas(department.id)
             except:
-                print("EXCEPTION: {}".format(sys.exc_info()[1]))
+                print(sys.exc_info()[1])
 
     @staticmethod
     def nightly_convert_pdf_to_text():
@@ -42,24 +43,18 @@ class Command(BaseCommand):
                 try:
                     convert_pdf_to_text(agenda.id)
                 except:
-                    print("EXCEPTION: {}".format(sys.exc_info()[1]))
+                    print(sys.exc_info()[1])
         else:
             print("No agendas need conversion!")
 
     @staticmethod
     def nightly_generate_highlights():
-        today = datetime.now(tz=timezone.get_current_timezone())
-        agendas = Agenda.objects.filter(date_added__date=today.date())
-        print("Checking for agendas added today...")
-        if agendas:
-            print("Agendas added. Generating highlights...")
-            for agenda in agendas:
-                try:
-                    generate_highlights(agenda.id)
-                except:
-                    print("EXCEPTION: {}".format(sys.exc_info()[1]))
-        else:
-            print("No agendas added today, so highlights won't be created.")
+        agendas = Agenda.objects.all()
+        for agenda in agendas:
+            try:
+                generate_highlights(agenda.id)
+            except:
+                print(sys.exc_info()[1])
 
     @staticmethod
     def cleanup_agendas():
@@ -73,19 +68,24 @@ class Command(BaseCommand):
     @staticmethod
     def send_email_summary():
         try:
-            # Send an email summarizing the operations above
             today = datetime.now(tz=timezone.get_current_timezone())
-            agendas = Agenda.objects.filter(date_added__date=today.date())
-            highlights = Highlight.objects.filter(date_added__date=today.date())
+            agendas = Agenda.objects.filter(date_added__date=today.date()).order_by(
+                'department.agency', 'department', 'agenda_date'
+            )
+            highlights = Highlight.objects.filter(date_added__date=today.date()).order_by(
+                'agenda.department.agency', 'agenda.department', 'agenda', 'pk'
+            )
+
+            # Only send email if there are new agendas or highlights
             if agendas or highlights:
                 subject = "Council Insights: Agenda Report for {}".format(today.strftime("%m/%d/%y"))
-                text_body = "Council Insights: Agenda Report for {}\n\n".format(today.strftime("%m/%d/%y"))
-                html_body = "<h4>Council Insights: Agenda Report for {}<h4>\n".format(today.strftime("%m/%d/%y"))
+                text_body = "Agenda Report for {}\n\n".format(today.strftime("%m/%d/%y"))
+                html_body = "<h2>Agenda Report for {}</h2>\n".format(today.strftime("%m/%d/%y"))
 
                 # Agendas
                 if agendas:
                     text_body += "The following agendas were added:\n"
-                    html_body += "<p>The following agendas were added:</p>\n<ol>\n"
+                    html_body += "<h4>The following agendas were added:</h4>\n<ol>\n"
                     for agenda in agendas:
                         text_body += "{} - {} - {}\n".format(
                             agenda.department.agency,
@@ -106,7 +106,7 @@ class Command(BaseCommand):
                 # Highlights
                 if highlights:
                     text_body += "The following highlights were added:\n"
-                    html_body += "<p>The following highlights were added:</p>\n<ol>\n"
+                    html_body += "<h4>The following highlights were added:</h4>\n<ol>\n"
                     for highlight in highlights:
                         text_body += "{} - {} - {}:\n".format(
                             highlight.agenda.department.agency,
@@ -123,7 +123,7 @@ class Command(BaseCommand):
                                 highlight.agenda.agenda_date.strftime("%m/%d/%y")
                             )
                         )
-                        html_body += "<p>{}</p>\n".format(highlight.agenda.agenda_text[highlight.start:highlight.end])
+                        html_body += "<p>{}</p>\n".format(Truncator(highlight.agenda.agenda_text[highlight.start:highlight.end]).chars(500))
                     html_body += "</ol>"
                 # Send email
                 print("New items were added. Sending email summary...")

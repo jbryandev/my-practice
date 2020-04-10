@@ -1,4 +1,4 @@
-from council.Crawler import Crawler
+from council.modules.Crawler import Crawler
 
 class EdmondCrawler(Crawler):
 
@@ -41,7 +41,6 @@ class EdmondCrawler(Crawler):
     def get_agenda_text(soup):
         # Separate head and body in order to strip out non-essential info
         # at beginning of each Edmond agenda
-        header = soup.thead.find_all("tr")[len(soup.thead.find_all("tr"))-1].text.strip()
         body = soup.tbody
         rows = body.find_all("tr")
         strings = []
@@ -53,20 +52,16 @@ class EdmondCrawler(Crawler):
             if "." in row.text:
                 col = row.find_all("td")
                 if not col[0].text.strip() and not col[1].text.strip() and col[2].text.strip():
-                    strings.append("<tr><td style=\"width: 10%\"></td><td style=\"width: \
-                        10%\"></td><td>{}\n\n</td></tr>".format(row.text.strip().\
+                    strings.append("<div class=\"mb-3\" style=\"padding-left: 0.5in\">{}</div>\n\n".format(row.text.strip().\
                         replace('\n', '').replace('\xa0', '')))
                 elif not col[0].text.strip() and col[1].text.strip():
-                    strings.append("<tr><td style=\"width: 10%\"></td><td \
-                        colspan=\"2\">{}\n\n</td></tr>".format(row.text.strip().\
+                    strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(row.text.strip().\
                         replace('\n', '').replace('\xa0', '')))
                 elif col[0].text.strip():
-                    strings.append("<tr><td colspan=\"3\">{}\n\n</td></tr>".\
-                        format(row.text.strip().replace('\n', '').replace('\xa0', '')))
+                    strings.append("<div class=\"mb-3\">{}</div>\n\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
         # Join the rows of body text together into one string, and then put the header and body
         # text together to create agenda_text
-        body = "".join(strings)
-        agenda_text = "{}\n\n<table>{}</table>".format(header, body)
+        agenda_text = "".join(strings)
         return agenda_text
 
     @staticmethod
