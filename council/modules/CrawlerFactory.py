@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
 from importlib import import_module
 
-class CrawlerFactory(ABC):
+class CrawlerFactory:
 
     def __init__(self, department, progress_recorder):
         self.name = department.crawler.crawler_name

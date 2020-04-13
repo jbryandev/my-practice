@@ -4,7 +4,7 @@ Defines the various admin models for this application.
 from django.contrib import admin
 from django.forms import ModelChoiceField, ModelMultipleChoiceField
 from .models import Agency, Department, Agenda, Crawler, Category, \
-    Highlight, Keyphrase
+    Highlight, Keyphrase, Converter
 
 class AgencyAdmin(admin.ModelAdmin):
     """ Admin model for Agency class """
@@ -44,6 +44,17 @@ class CrawlerAdmin(admin.ModelAdmin):
     list_display = ('crawler_name', 'date_added')
     list_filter = ['date_added']
     search_fields = ['crawler_name']
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "department":
+            return DepartmentMultipleChoiceField(queryset=Department.objects.all())
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+class ConverterAdmin(admin.ModelAdmin):
+    """ Admin model for Converter class """
+    list_display = ('name', 'date_added')
+    list_filter = ['date_added']
+    search_fields = ['name']
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "department":
@@ -117,6 +128,7 @@ admin.site.register(Agency, AgencyAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Agenda, AgendaAdmin)
 admin.site.register(Crawler, CrawlerAdmin)
+admin.site.register(Converter, ConverterAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Highlight, HighlightAdmin)
 admin.site.register(Keyphrase, KeyphraseAdmin)

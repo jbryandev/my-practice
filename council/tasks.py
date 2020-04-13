@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
 from council.models import Agenda, Department, Keyphrase
 from council.modules.CrawlerFactory import CrawlerFactory
-from council.modules.PDFConverter import PDFConverter
+from council.modules.PDFConverterFactory import PDFConverterFactory
 from council.modules.CouncilRecorder import CouncilRecorder
 from council.modules.Highlighter import Highlighter
 
@@ -30,7 +30,8 @@ def convert_pdf_to_text(self, agenda_id):
     try:
         progress_recorder = CouncilRecorder(self)
         agenda = get_object_or_404(Agenda, pk=agenda_id)
-        converter = PDFConverter(agenda, progress_recorder)
+        converter_factory = PDFConverterFactory(agenda, progress_recorder)
+        converter = converter_factory.create_converter()
         converter.convert()
         return "PDF conversion complete."
     except:

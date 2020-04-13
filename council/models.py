@@ -36,6 +36,19 @@ class Crawler(models.Model):
     def __str__(self):
         return self.crawler_name
 
+class Converter(models.Model):
+    """
+    A converter converts agenda PDFs into text.
+    """
+    class Meta:
+        ordering = ('name', 'date_added')
+
+    name = models.CharField(max_length=200)
+    date_added = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
 class Department(models.Model):
     """ A department belongs to an agency and has agendas. """
     class Meta:
@@ -48,6 +61,7 @@ class Department(models.Model):
     agendas_url = models.URLField(null=True, blank=True, max_length=500)
     agency = models.ForeignKey(Agency, related_name='departments', on_delete=models.CASCADE)
     crawler = models.ForeignKey(Crawler, related_name='departments', on_delete=models.CASCADE)
+    converter = models.ForeignKey(Converter, related_name='departments', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.department_name

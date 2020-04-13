@@ -11,6 +11,7 @@ class PDFConverter(ABC):
         self.agenda = agenda
         self.pdf_url = agenda.pdf_link
         self.progress_recorder = progress_recorder
+        self.ocr_config = r'--oem 3 --psm 6'
 
     def __repr__(self):
         return "{} Agenda PDFConverter".format(str(self.agenda))
@@ -40,6 +41,7 @@ class PDFConverter(ABC):
             raise
 
         self.progress_recorder.update(3, 5, "Extracting text using OCR...")
+        pdf_text = ""
         for image in images:
             try:
                 processed_image = self.process_image(image)
@@ -57,7 +59,7 @@ class PDFConverter(ABC):
                 break
         try:
             formatted_text = self.format_text(pdf_text)
-            self.agenda.agenda_text = linebreaks(formatted_text)
+            self.agenda.agenda_text = formatted_text
             self.progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
             self.agenda.save()
         except:
@@ -76,16 +78,21 @@ class PDFConverter(ABC):
     def get_images(pdf_file):
         return convert_from_bytes(pdf_file.read(), last_page=20)
 
-    @staticmethod
-    def process_image(pdf_image):
-        processor = ImageProcessor(pdf_image)
+    def process_image(self, pdf_image):
+        # Crop image to remove unwanted headers/footers
+        cropped_image = self.crop_image(pdf_image)
+        # Run image through pre-processor to prep for OCR
+        processor = ImageProcessor(cropped_image)
         return processor.process()
 
-    @staticmethod
-    def extract_text(pdf_image):
-        return pytesseract.image_to_string(pdf_image)
+    def extract_text(self, pdf_image):
+        return pytesseract.image_to_string(pdf_image, config=self.ocr_config)
+
+    def format_text(self, pdf_text):
+        # This method should be overriden by subclasses
+        return pdf_text
 
     @staticmethod
-    def format_text(pdf_text):
-        # This method should be overriden by any subclasses
-        return pdf_text
+    def crop_image(pdf_image):
+        # This method should be overriden by subclasses
+        return pdf_image

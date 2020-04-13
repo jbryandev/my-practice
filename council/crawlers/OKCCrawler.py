@@ -1,5 +1,4 @@
-import re
-import unicodedata
+import re, unicodedata
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import Tag
