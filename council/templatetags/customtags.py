@@ -26,15 +26,20 @@ def highlight(text, agenda_id):
 
 @register.filter
 @stringfilter
-def hl_slice(agenda_text, highlight):
+def hl_slice(agenda_text, hl):
     """
-    Returns the agenda text, sliced based on the highlight range.
+    Returns the highlighted portion of the agenda text.
     """
     try:
-        new_text = strip_tags(agenda_text[highlight.start:highlight.end])
-        return new_text
-
+        hl_text = strip_tags(agenda_text[hl.start:hl.end])
+        return hl_text
     except (ValueError, TypeError):
-        return highlight  # Fail silently.
+        return hl  # Fail silently.
+
+@register.filter
+def order_by(queryset, args):
+    args = [x.strip() for x in args.split(',')]
+    return queryset.order_by(*args)
 
 register.filter(highlight)
+register.filter(order_by)

@@ -22,7 +22,7 @@
 <hr></hr>
 
 <!-- Highlights -->
-<div class="card border-light mb-3">
+<div id="highlights" class="card border-light mb-3">
     <h5 class="card-header">Highlights
         <small class="mt-1 text-muted" style="float: right;"><a href="{% url 'council:highlight' agenda.id %}">Generate Highlights</a></small>
     </h5>
@@ -79,7 +79,7 @@
     {% else %}
         {% if agenda.highlights.all %}
             <ul>
-            {% for highlight in agenda.highlights.all %}
+            {% for highlight in agenda.highlights.all|order_by:"start" %}
                 <li><a href="#{{ highlight.id }}">{{ agenda.agenda_text|hl_slice:highlight|truncatechars:500 }}</a></li>
             {% endfor %}
             </ul>
@@ -91,7 +91,7 @@
 </div>
 
 <!-- Agenda Content -->
-<div class="card border-light mb-3">
+<div id="agendas" class="card border-light mb-3">
     <h5 class="card-header">Agenda Content
     {% if agenda.pdf_link %}
         <small class="mt-1 text-muted" style="float: right;"><a href="{{ agenda.pdf_link }}" target="_blank">Download PDF</a></small>
@@ -99,7 +99,17 @@
     </h5>
     <div class="card-body">
     {% if agenda.agenda_text %}
-        {{ agenda.agenda_text|highlight:agenda.id|safe }}
+        {% if agenda.highlights.all %}
+        <script>
+            $(document).ready(function(){
+                // Displays highlights if any exist
+                {% for highlight in agenda.highlights.all %}
+                $( "div.card-body div.mb-3:contains('{{ agenda.agenda_text|hl_slice:highlight }}')" ).css( "background-color", "#FFFF00" ).attr("id", "{{ highlight.id }}");
+                {% endfor %}
+            });
+        </script>
+        {% endif %}
+        {{ agenda.agenda_text|safe }}
     {% else %}
         {% if convert_task_id %}
             {% load static %}

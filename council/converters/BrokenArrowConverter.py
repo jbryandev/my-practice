@@ -19,34 +19,44 @@ class BrokenArrowConverter(PDFConverter):
             trimmed_text = pdf_text[:last_line.end()]
         else:
             trimmed_text = pdf_text
+        # return pdf_text
         # return trimmed_text
-        self.indent_text(trimmed_text)
+        corrected_text = self.fix_ocr(trimmed_text)
+        self.indent_text(corrected_text)
         return self.formatted_text
+
+    def fix_ocr(self, trimmed_text):
+        match = re.search(r"[A-Z]{1,2}\,[^\S]\d{1,2}-", trimmed_text)
+        if match:
+            return trimmed_text.replace(match.group(0), match.group(0).replace(",", "."))
+        else:
+            return trimmed_text
 
     def indent_text(self, trimmed_text):
         if re.match(r"\d{1,2}\.[^\S][A-Z]", trimmed_text):
             start = re.match(r"\d{1,2}\.[^\S][A-Z]", trimmed_text)
-            end = re.search(r"\n[A-Z0-9]{1,2}\.[^\S]", trimmed_text[start.end():])
+            end = re.search(r"\d{1,2}\.[^\S][A-Z]|[A-Z]{1,2}\.[^\S]\d{1,2}", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():end.end()]
+                    trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
                 )
-                self.indent_text(trimmed_text[end.end():].strip())
+                self.indent_text(trimmed_text[end.start()+start.end():].strip())
             else:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():]
+                    trimmed_text[start.start():].strip().replace("\n", " ")
                 )
-        elif re.match(r"[A-Z0-9]{1,2}\.[^\S]\d", trimmed_text):
-            start = re.match(r"[A-Z0-9]{1,2}\.[^\S]\d", trimmed_text)
-            end = re.search(r"\n[A-Z0-9]{1,2}\.[^\S]", trimmed_text[start.end():])
+        elif re.match(r"[A-Z]{1,2}\.[^\S]\d{1,2}", trimmed_text):
+            start = re.match(r"[A-Z]{1,2}\.[^\S]\d{1,2}", trimmed_text)
+            end = re.search(r"\d{1,2}\.[^\S][A-Z]|[A-Z]{1,2}\.[^\S]\d{1,2}", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(
-                    trimmed_text[start.start():end.end()]
+                    trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
                 )
-                self.indent_text(trimmed_text[end.end():].strip())
+                self.indent_text(trimmed_text[end.start()+start.end():].strip())
             else:
+                print(trimmed_text[start.start():].strip().replace("\n", " "))
                 self.formatted_text += "<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(
-                    trimmed_text[start.start():]
+                    trimmed_text[start.start():].strip().replace("\n", " ")
                 )
 
     @staticmethod

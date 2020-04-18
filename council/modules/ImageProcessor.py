@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from PIL import Image
 
 class ImageProcessor:
 
@@ -12,7 +13,8 @@ class ImageProcessor:
         gray = self.get_grayscale(resized)
         denoise = self.remove_noise(gray)
         thresh = self.thresholding(denoise)
-        processed_img = self.deskew(thresh)
+        deskewed = self.deskew(thresh)
+        processed_img = Image.fromarray(deskewed)
         return processed_img
 
     # convert image to opencv format

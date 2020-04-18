@@ -4,6 +4,8 @@ from pdf2image import convert_from_bytes
 import pytesseract
 from django.utils.html import linebreaks
 from .ImageProcessor import ImageProcessor
+from .OCRProcessor import OCRProcessor
+from bs4 import BeautifulSoup
 
 class PDFConverter(ABC):
 
@@ -86,7 +88,11 @@ class PDFConverter(ABC):
         return processor.process()
 
     def extract_text(self, pdf_image):
-        return pytesseract.image_to_string(pdf_image, config=self.ocr_config)
+        ocr = OCRProcessor()
+        hocr = ocr.process(pdf_image, config=self.ocr_config, extension='hocr')
+        soup = BeautifulSoup(hocr, "html.parser")
+        return str(soup)
+        # return pytesseract.image_to_string(pdf_image, config=self.ocr_config)
 
     def format_text(self, pdf_text):
         # This method should be overriden by subclasses
