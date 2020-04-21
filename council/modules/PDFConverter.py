@@ -5,7 +5,6 @@ import pytesseract
 from django.utils.html import linebreaks
 from .ImageProcessor import ImageProcessor
 from .OCRProcessor import OCRProcessor
-from bs4 import BeautifulSoup
 
 class PDFConverter(ABC):
 
@@ -68,6 +67,7 @@ class PDFConverter(ABC):
             print("ERROR: Unable to save agenda text.")
             raise
         return "Done."
+        # return formatted_text
 
     def request_pdf(self):
         return requests.get(self.pdf_url)
@@ -89,10 +89,7 @@ class PDFConverter(ABC):
 
     def extract_text(self, pdf_image):
         ocr = OCRProcessor()
-        hocr = ocr.process(pdf_image, config=self.ocr_config, extension='hocr')
-        soup = BeautifulSoup(hocr, "html.parser")
-        return str(soup)
-        # return pytesseract.image_to_string(pdf_image, config=self.ocr_config)
+        return ocr.process(pdf_image, config=self.ocr_config)
 
     def format_text(self, pdf_text):
         # This method should be overriden by subclasses

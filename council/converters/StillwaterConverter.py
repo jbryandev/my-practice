@@ -1,5 +1,7 @@
 import re
+from bs4 import BeautifulSoup
 from council.modules.PDFConverter import PDFConverter
+from council.modules.OCRProcessor import OCRProcessor
 
 class StillwaterConverter(PDFConverter):
 
@@ -8,6 +10,14 @@ class StillwaterConverter(PDFConverter):
         self.formatted_text = ""
         self.ocr_config = r'--oem 3 --psm 4'
 
+    # def extract_text(self, pdf_image):
+    #     ocr = OCRProcessor()
+    #     hocr = ocr.process(pdf_image, config=self.ocr_config, mode='hocr')
+    #     soup = BeautifulSoup(hocr, "html.parser")
+    #     print(soup)
+    #     # return str(soup)
+    #     return soup
+    
     def format_text(self, pdf_text):
         trimmed_text = ""
         first_line = re.search("1. Call Meeting to Order", pdf_text)
@@ -20,8 +30,8 @@ class StillwaterConverter(PDFConverter):
             trimmed_text = pdf_text[:last_line.end()]
         else:
             trimmed_text = pdf_text
-        return pdf_text
-        # return trimmed_text
+        # return pdf_text
+        return trimmed_text
         # self.indent_text(trimmed_text)
         # return self.formatted_text
 
