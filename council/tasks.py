@@ -32,8 +32,8 @@ def convert_pdf_to_text(self, agenda_id):
         agenda = get_object_or_404(Agenda, pk=agenda_id)
         converter_factory = PDFConverterFactory(agenda, progress_recorder)
         converter = converter_factory.create_converter()
-        # return converter
-        converter.convert()
+        return converter
+        # converter.convert()
         return "PDF conversion complete."
     except:
         # Pass on exception to be handled by calling function

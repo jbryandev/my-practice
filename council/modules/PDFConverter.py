@@ -15,7 +15,7 @@ class PDFConverter(ABC):
         self.ocr_config = r'--oem 3 --psm 6'
 
     def __repr__(self):
-        return "{} Agenda PDFConverter".format(str(self.agenda))
+        return "{} - {} Agenda".format(self.__class__.__name__, str(self.agenda))
 
     def convert(self):
         status = "Converting {} - {}: {}".format(
@@ -50,17 +50,23 @@ class PDFConverter(ABC):
                 print("ERROR: Unable to pre-process image.")
                 raise
             try:
-                pdf_text += "{}".format(self.extract_text(processed_image))
+                # pdf_text += "{}".format(self.extract_text(processed_image))
+                extracted_text = self.extract_text(processed_image)
             except:
                 print("ERROR: Unable to extract text.")
+                raise
+            try:
+                formatted_text = self.format_text(extracted_text)
+                pdf_text += formatted_text
+            except:
+                print("ERROR: Unable to format text.")
                 raise
             match = re.search("adjourn", pdf_text, re.IGNORECASE)
             if match:
                 # Stop extracting when "adjorn" text is found (aka the end of the agenda)
                 break
         try:
-            formatted_text = self.format_text(pdf_text)
-            self.agenda.agenda_text = formatted_text
+            self.agenda.agenda_text = pdf_text
             self.progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
             self.agenda.save()
         except:
@@ -88,12 +94,13 @@ class PDFConverter(ABC):
         return processor.process()
 
     def extract_text(self, pdf_image):
+        # This method should be overriden by subclasses
         ocr = OCRProcessor()
         return ocr.process(pdf_image, config=self.ocr_config)
 
-    def format_text(self, pdf_text):
+    def format_text(self, extracted_text):
         # This method should be overriden by subclasses
-        return pdf_text
+        return str(extracted_text)
 
     @staticmethod
     def crop_image(pdf_image):
