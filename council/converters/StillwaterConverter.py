@@ -14,28 +14,33 @@ class StillwaterConverter(PDFConverter):
         ocr = OCRProcessor()
         hocr = ocr.process(pdf_image, config=self.ocr_config, mode='hocr')
         soup = BeautifulSoup(hocr, "html.parser")
-        return soup
+        lines = soup.find_all("span", class_="ocr_line")
+        return lines
     
-    def format_text(self, soup):
-        pass
-        # trimmed_text = ""
-        # first_line = re.search("1. Call Meeting to Order", pdf_text)
-        # last_line = re.search("Adjourn", pdf_text)
-        # if first_line and last_line:
-        #     trimmed_text = pdf_text[first_line.start():last_line.end()]
-        # elif first_line and not last_line:
-        #     trimmed_text = pdf_text[first_line.start():]
-        # elif not first_line and last_line:
-        #     trimmed_text = pdf_text[:last_line.end()]
-        # else:
-        #     trimmed_text = pdf_text
-        # return pdf_text
-        # return trimmed_text
+    def format_text(self, lines):
+        pdf_text = ""
+        for line in lines:
+            pdf_text += line.text.strip().replace("|", "").replace("\n", " ")
+        trimmed_text = self.trim_text(pdf_text)
         # self.indent_text(trimmed_text)
         # return self.formatted_text
+        return trimmed_text
+
+    def trim_text(self, pdf_text):
+        first_line = re.search("1. Call Meeting to Order", pdf_text)
+        last_line = re.search("Adjourn", pdf_text)
+        if first_line and last_line:
+            trimmed_text = pdf_text[first_line.start():last_line.end()]
+        elif first_line and not last_line:
+            trimmed_text = pdf_text[first_line.start():]
+        elif not first_line and last_line:
+            trimmed_text = pdf_text[:last_line.end()]
+        else:
+            trimmed_text = pdf_text
+        return trimmed_text
 
     def indent_text(self, trimmed_text):
-        if re.match(r"\d{1,2}\.[^\S][A-Z]", trimmed_text):
+        if re.match(r"\d{1,2}\.\s*[A-Z]", trimmed_text):
             start = re.match(r"\d{1,2}\.[^\S][A-Z]", trimmed_text)
             end = re.search(r"[a-z0-9]{1,2}\.[^\S][A-Z]", trimmed_text[start.end():])
             if end:
