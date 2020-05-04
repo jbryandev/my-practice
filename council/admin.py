@@ -67,7 +67,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class HighlightAdmin(admin.ModelAdmin):
     """ Admin model for Highlight class """
-    ordering = ['pk']
+    #ordering = ['pk']
     list_display = ('__str__', 'category', 'agenda', 'get_agency', 'get_department')
     list_filter = ['category']
 
@@ -91,7 +91,7 @@ class HighlightAdmin(admin.ModelAdmin):
 
     get_department.admin_order_field = 'agenda__department_name' #Allows column order sorting
     get_department.short_description = 'Department'  #Renames column heading
-    get_agency.admin_order_field = 'department__agency_name' #Allows column order sorting
+    get_agency.admin_order_field = 'agenda__department__agency_name' #Allows column order sorting
     get_agency.short_description = 'Agency'  #Renames column heading
 
 class KeyphraseAdmin(admin.ModelAdmin):

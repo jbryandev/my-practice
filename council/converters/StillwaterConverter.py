@@ -12,19 +12,22 @@ class StillwaterConverter(PDFConverter):
 
     def extract_text(self, pdf_image):
         ocr = OCRProcessor()
-        hocr = ocr.process(pdf_image, config=self.ocr_config, mode='hocr')
-        soup = BeautifulSoup(hocr, "html.parser")
-        lines = soup.find_all("span", class_="ocr_line")
-        return lines
+        return ocr.process(pdf_image, config=self.ocr_config)
+        # hocr = ocr.process(pdf_image, config=self.ocr_config, mode='hocr')
+        # soup = BeautifulSoup(hocr, "html.parser")
+        # lines = soup.find_all("span", class_="ocr_line")
+        # pdf_text = ""
+        # for line in lines:
+        #     pdf_text += line.text.strip().replace("|", "").replace("\n", " ")
+        # return pdf_text
     
-    def format_text(self, lines):
-        pdf_text = ""
-        for line in lines:
-            pdf_text += line.text.strip().replace("|", "").replace("\n", " ")
-        trimmed_text = self.trim_text(pdf_text)
-        # self.indent_text(trimmed_text)
-        # return self.formatted_text
-        return trimmed_text
+    def format_text(self, extracted_text):
+        clean_text = extracted_text.replace("\x0c", "\n").replace("|", "")
+        trimmed_text = self.trim_text(clean_text)
+        self.formatted_text = ""
+        self.indent_text(trimmed_text)
+        return self.formatted_text
+        # return trimmed_text
 
     def trim_text(self, pdf_text):
         first_line = re.search("1. Call Meeting to Order", pdf_text)
@@ -40,28 +43,38 @@ class StillwaterConverter(PDFConverter):
         return trimmed_text
 
     def indent_text(self, trimmed_text):
-        if re.match(r"\d{1,2}\.\s*[A-Z]", trimmed_text):
-            start = re.match(r"\d{1,2}\.[^\S][A-Z]", trimmed_text)
-            end = re.search(r"[a-z0-9]{1,2}\.[^\S][A-Z]", trimmed_text[start.end():])
+        if re.match(r"\d{1,2}\.\s[A-Z]", trimmed_text):
+            start = re.match(r"\d{1,2}\.\s[A-Z]", trimmed_text)
+            end = re.search(r"\n", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
+                    trimmed_text[start.start():end.start()+start.end()].strip()
                 )
                 self.indent_text(trimmed_text[end.start()+start.end():].strip())
             else:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():].strip().replace("\n", " ")
+                    trimmed_text[start.start():].strip()
                 )
-        elif re.match(r"[a-z]{1,2}\.[^\S][A-Z]", trimmed_text):
-            start = re.match(r"[a-z]{1,2}\.[^\S][A-Z]", trimmed_text)
-            end = re.search(r"[a-z0-9]{1,2}\.[^\S][A-Z]", trimmed_text[start.end():])
+        elif re.match(r"[a-z]{1,2}\.\s", trimmed_text):
+            start = re.match(r"[a-z]{1,2}\.\s", trimmed_text)
+            end = re.search(r"\n[a-z]\.\s|\n\n", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(
                     trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
                 )
                 self.indent_text(trimmed_text[end.start()+start.end():].strip())
             else:
-                print(trimmed_text[start.start():].strip().replace("\n", " "))
                 self.formatted_text += "<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(
                     trimmed_text[start.start():].strip().replace("\n", " ")
+                )
+        else:
+            end = re.search(r"\n\n", trimmed_text)
+            if end:
+                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
+                    trimmed_text[:end.start()].strip().replace("\n", " ")
+                )
+                self.indent_text(trimmed_text[end.start():].strip())
+            else:
+                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
+                    trimmed_text.strip().replace("\n", " ")
                 )

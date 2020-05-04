@@ -118,7 +118,7 @@ class Highlight(models.Model):
     A highlight belongs to only one agenda, but an agenda can have many highlights.
     """
     class Meta:
-        ordering = ('pk', 'date_added')
+        ordering = ('agenda__department__agency', 'agenda__department', 'pk')
 
     date_added = models.DateTimeField(null=True, blank=True)
     start = models.PositiveIntegerField("highlight start")

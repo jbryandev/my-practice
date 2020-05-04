@@ -54,7 +54,6 @@ class BrokenArrowConverter(PDFConverter):
                 )
                 self.indent_text(trimmed_text[end.start()+start.end():].strip())
             else:
-                print(trimmed_text[start.start():].strip().replace("\n", " "))
                 self.formatted_text += "<div class=\"mb-3\" style=\"padding-left: 0.25in\">{}</div>\n\n".format(
                     trimmed_text[start.start():].strip().replace("\n", " ")
                 )

@@ -50,23 +50,16 @@ class PDFConverter(ABC):
                 print("ERROR: Unable to pre-process image.")
                 raise
             try:
-                # pdf_text += "{}".format(self.extract_text(processed_image))
-                extracted_text = self.extract_text(processed_image)
+                pdf_text += "{}".format(self.extract_text(processed_image))
             except:
                 print("ERROR: Unable to extract text.")
-                raise
-            try:
-                formatted_text = self.format_text(extracted_text)
-                pdf_text += formatted_text
-            except:
-                print("ERROR: Unable to format text.")
                 raise
             match = re.search("adjourn", pdf_text, re.IGNORECASE)
             if match:
                 # Stop extracting when "adjorn" text is found (aka the end of the agenda)
                 break
         try:
-            self.agenda.agenda_text = pdf_text
+            self.agenda.agenda_text = self.format_text(pdf_text)
             self.progress_recorder.update(4, 5, "Extraction complete. Saving PDF text to database...")
             self.agenda.save()
         except:
@@ -101,6 +94,20 @@ class PDFConverter(ABC):
     def format_text(self, extracted_text):
         # This method should be overriden by subclasses
         return str(extracted_text)
+
+    def trim_text(self, pdf_text, start, end):
+        trimmed_text = ""
+        first_line = re.search(start, pdf_text)
+        last_line = re.search(end, pdf_text)
+        if first_line and last_line:
+            trimmed_text = pdf_text[first_line.start():last_line.end()]
+        elif first_line and not last_line:
+            trimmed_text = pdf_text[first_line.start():]
+        elif not first_line and last_line:
+            trimmed_text = pdf_text[:last_line.end()]
+        else:
+            trimmed_text = pdf_text
+        return trimmed_text
 
     @staticmethod
     def crop_image(pdf_image):

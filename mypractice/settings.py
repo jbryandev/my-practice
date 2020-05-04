@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'council',
     'projects',
     'celery_progress',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -178,3 +179,6 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'my-practice@my-practice.herokuapps.com'
 DEFAULT_SERVER_EMAIL = 'server@my-practice.herokuapps.com'
+
+# Defaul shell
+SHELL_PLUS = "ipython"
