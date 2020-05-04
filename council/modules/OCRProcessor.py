@@ -17,7 +17,7 @@ class OCRProcessor:
             if mode == "hocr":
                 extension = mode
             output_file_name = ('%s.%s' % (os.path.join(tmpdir, "output"), extension))
-            with open(output_file_name, 'r') as handle:
+            with open(output_file_name, 'r', encoding='utf-8') as handle:
                 contents = handle.read()
             os.remove(output_file_name)
         return contents

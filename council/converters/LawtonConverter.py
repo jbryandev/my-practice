@@ -10,7 +10,6 @@ class LawtonConverter(PDFConverter):
     def format_text(self, pdf_text):
         trimmed_text = self.trim_text(pdf_text, "MEETING CALLED TO ORDER", "ADJOURNMENT")
         corrected_text = self.fix_ocr(trimmed_text)
-        print(repr(corrected_text))
         self.indent_text(corrected_text)
         return self.formatted_text
 
