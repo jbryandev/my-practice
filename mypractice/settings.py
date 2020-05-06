@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import sys
+import asyncio
 import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -182,3 +184,7 @@ DEFAULT_SERVER_EMAIL = 'server@my-practice.herokuapps.com'
 
 # Use as default shell for IPython
 SHELL_PLUS = "ipython"
+
+# Fix for Python 3.8 asyncio connection reset errors
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

@@ -73,7 +73,7 @@ class Department(models.Model):
 class Agenda(models.Model):
     """ An agenda belongs to a specific department. """
     class Meta:
-        ordering = ('department__agency', 'department', '-agenda_date')
+        ordering = ('department__agency', 'department', 'agenda_date')
 
     agenda_date = models.DateField(null=False, blank=False)
     agenda_title = models.CharField(null=True, blank=True, max_length=200)

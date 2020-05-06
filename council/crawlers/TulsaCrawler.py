@@ -44,11 +44,12 @@ class TulsaCrawler(Crawler):
                 agenda_url = "http://legacy.tulsacouncil.org/inc/search/{}".format(agenda.a["href"])
                 # Make sure agenda isn't already in the database
                 if not self.agenda_exists(agenda_url):
-                    match = re.search(r'\d{1,2}/\d{1,2}/\d{1,4}', agenda.text)
+                    match = re.search(r'\d{1,2}/\d{1,2}/\d{1,4}\s\d{1,2}:\d{2}\s(AM|PM)', agenda.text)
                     agenda_date = self.create_date(match.group(0))
                     # Make sure agenda isn't older than the cutoff date
                     if not self.too_old(agenda_date):
-                        agenda_title = agenda.a.text
+                        agenda_time = "(Workshop)" if agenda_date.strftime("%I:%M %p") == "04:00 PM" else ""
+                        agenda_title = "{} {}".format(agenda.a.text, agenda_time).strip()
                         if self.name == "City Council":
                             self.name = "Council" # City Council agendas are labeled only as "Council"
                         # Check to see if agenda title matches the department
@@ -63,10 +64,29 @@ class TulsaCrawler(Crawler):
 
     def parse_agenda(self, agenda):
         response = self.request(agenda.get("agenda_url"))
+        response.encoding = "utf-8"
         soup = self.get_soup(response.text, "html.parser")
-        agenda_text = soup.text.replace("â\x80\x99", "'").replace("BackupDocumentation", "").strip()
+        agenda_text = self.format_text(soup.text)
         agenda.update({
             "agenda_text": agenda_text,
             "pdf_link": ""
         })
         return agenda
+
+    def format_text(self, text):
+        # Override in child classes
+        return text
+
+    def trim_text(self, text, start, end):
+        trimmed_text = ""
+        first_line = re.search(start, text)
+        last_line = re.search(end, text)
+        if first_line and last_line:
+            trimmed_text = text[first_line.start():last_line.end()]
+        elif first_line and not last_line:
+            trimmed_text = text[first_line.start():]
+        elif not first_line and last_line:
+            trimmed_text = text[:last_line.end()]
+        else:
+            trimmed_text = text
+        return trimmed_text
