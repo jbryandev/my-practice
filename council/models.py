@@ -141,7 +141,7 @@ class Keyphrase(models.Model):
     Keyphrase matches form the basis for generating highlights.
     """
     class Meta:
-        ordering = ('category', 'phrase', 'date_added')
+        ordering = ('category', 'phrase')
 
     phrase = models.CharField(
         "keyphrase", max_length=200, null=False, blank=False)

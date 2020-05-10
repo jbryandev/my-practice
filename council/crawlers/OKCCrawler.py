@@ -25,7 +25,7 @@ class OKCCrawler(Crawler):
 
     def filter_agendas(self, parsed_html):
         filtered_agendas = []
-        # Limit search to 20 most-recent agendas
+        # Limit search to 50 most-recent agendas
         rows = parsed_html.find_all("tr", limit=50)
         for agenda in rows:
             # Split up agenda discription into string components
@@ -59,13 +59,20 @@ class OKCCrawler(Crawler):
         browser = self.get_browser(agenda.get("agenda_url"))
         self.set_strainer("table", class_="MsoNormalTable")
         soup = self.get_soup(browser.page_source, "html.parser", parse_only=self.strainer)
+        if not soup.text:
+            soup = self.get_soup(browser.page_source, "html.parser")
         browser.quit()
         agenda_text = self.get_agenda_text(soup)
+        if "cancellation notice" in agenda_text.lower():
+            agenda.update({
+                "agenda_title": str(agenda.get("agenda_title")) + " (Cancelled)"
+            })
 
         # Get PDF link
         browser = self.get_browser(agenda.get("agenda_view_url"))
         self.set_strainer("table", id="tblMeetingDocs")
-        soup = self.get_soup(browser.page_source, "html.parser", parse_only=self.strainer)
+        source = browser.page_source.encode(encoding='UTF-8')
+        soup = self.get_soup(source, "html.parser", parse_only=self.strainer)
         browser.quit()
         pdf_link = ""
         if soup.a:
@@ -89,20 +96,24 @@ class OKCCrawler(Crawler):
                 if col:
                     if len(col) > 1:
                         if int(col[0]['width']) > 300:
-                            strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
+                            strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(
+                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                         elif 100 < int(col[0]['width']) < 300:
                             strings.append("<div class=\"mb-3\" style=\"padding-left: 0.50in\">{} {}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip()))
+                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                         elif 60 < int(col[0]['width']) < 100:
-                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
+                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(
+                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                         elif int(col[0]['width']) < 60:
-                            strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(col[0].text.strip(), col[1].text.strip()))
+                            strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(
+                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                     else:
                         if col[0].text.strip():
-                            strings.append("<div class=\"mb-3\">{}</div>\n\n".format(col[0].text.strip()))
-                # else:
-                #     strings.append("<div>{}</div>\n\n".format(row.text.strip().replace('\n', '').replace('\xa0', '')))
-        # Join the rows of body text together into one string, and then put the header and body
-        # text together to create agenda_text
-        agenda_text = unicodedata.normalize("NFKD", "".join(strings))
+                            strings.append("<div class=\"mb-3\">{}</div>\n\n".format(
+                                col[0].text.strip().replace("\n", "").replace("\xa0", " ")))
+                else:
+                    strings.append("<div>{}</div>\n\n".format(
+                        row.text.strip().replace("\xa0", " ").replace('\n', '<br>')))
+        # Join the rows of body text together into one string
+        agenda_text = "".join(strings)
         return agenda_text

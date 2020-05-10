@@ -84,7 +84,9 @@ class Crawler(ABC):
         return "Done."
 
     def get_page_source(self, url):
-        return self.request(url).text
+        response = self.request(url)
+        response.encoding = "utf-8"
+        return response.text
 
     def parse_html(self, page_source):
         return self.get_soup(page_source, "html.parser", parse_only=self.strainer)

@@ -67,7 +67,6 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class HighlightAdmin(admin.ModelAdmin):
     """ Admin model for Highlight class """
-    #ordering = ['pk']
     list_display = ('__str__', 'category', 'agenda', 'get_agency', 'get_department')
     list_filter = ['category']
 
@@ -96,7 +95,7 @@ class HighlightAdmin(admin.ModelAdmin):
 
 class KeyphraseAdmin(admin.ModelAdmin):
     """ Admin model for Keyphrase class """
-    list_display = ('__str__', 'category', 'date_added')
+    list_display = ('phrase', 'category', 'date_added')
     list_filter = ['category']
     search_fields = ['phrase']
 
