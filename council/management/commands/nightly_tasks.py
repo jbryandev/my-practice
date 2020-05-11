@@ -70,10 +70,10 @@ class Command(BaseCommand):
         try:
             today = datetime.now(tz=timezone.get_current_timezone())
             agendas = Agenda.objects.filter(date_added__date=today.date()).order_by(
-                'department.agency', 'department', 'agenda_date'
+                'department__agency', 'department', 'agenda_date'
             )
             highlights = Highlight.objects.filter(date_added__date=today.date()).order_by(
-                'agenda.department.agency', 'agenda.department', 'agenda', 'pk'
+                'agenda__department__agency', 'agenda__department', 'agenda', 'pk'
             )
 
             # Only send email if there are new agendas or highlights
