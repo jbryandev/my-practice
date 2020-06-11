@@ -85,8 +85,7 @@ class OKCCrawler(Crawler):
         })
         return agenda
 
-    @staticmethod
-    def get_agenda_text(soup):
+    def get_agenda_text(self, soup):
         strings = []
         # BS4 has trouble processing tables;
         # Loop over agenda content and fix the tables
@@ -95,18 +94,26 @@ class OKCCrawler(Crawler):
                 col = row.find_all("td")
                 if col:
                     if len(col) > 1:
-                        if int(col[0]['width']) > 300:
-                            strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif 100 < int(col[0]['width']) < 300:
-                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.50in\">{} {}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif 60 < int(col[0]['width']) < 100:
-                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif int(col[0]['width']) < 60:
-                            strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                        if self.name.strip() == "Oklahoma City Water Utilities Trust":
+                            if int(col[0]['width']) == 36:
+                                strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                            elif int(col[0]['width']) == 42:
+                                strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                        else:
+                            if int(col[0]['width']) > 300:
+                                strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                            elif 100 < int(col[0]['width']) < 300:
+                                strings.append("<div class=\"mb-3\" style=\"padding-left: 0.50in\">{} {}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                            elif 60 < int(col[0]['width']) < 100:
+                                strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
+                            elif int(col[0]['width']) < 60:
+                                strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(
+                                    col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                     else:
                         if col[0].text.strip():
                             strings.append("<div class=\"mb-3\">{}</div>\n\n".format(

@@ -18,7 +18,6 @@ class OCWUTCrawler(Crawler):
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
             page_source = browser.page_source
             browser.quit()
-            print(page_source)
             return page_source
         except TimeoutException:
             print("Timed out waiting for page to load")
@@ -86,8 +85,7 @@ class OCWUTCrawler(Crawler):
         })
         return agenda
 
-    @staticmethod
-    def get_agenda_text(soup):
+    def get_agenda_text(self, soup):
         strings = []
         # BS4 has trouble processing tables;
         # Loop over agenda content and fix the tables
