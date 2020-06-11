@@ -28,7 +28,7 @@ class OKCCrawler(Crawler):
         # Limit search to 50 most-recent agendas
         rows = parsed_html.find_all("tr", limit=50)
         for agenda in rows:
-            # Split up agenda discription into string components
+            # Split up agenda description into string components
             agenda_strings = agenda.text.strip().split("\n")
             # Store date and title to vars
             agenda_date = self.create_date(agenda_strings[1].strip())
