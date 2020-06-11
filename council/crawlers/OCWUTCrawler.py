@@ -4,7 +4,7 @@ from selenium.common.exceptions import TimeoutException
 from bs4 import Tag
 from council.modules.Crawler import Crawler
 
-class OKCCrawler(Crawler):
+class OCWUTCrawler(Crawler):
 
     def __init__(self, department, progress_recorder):
         super().__init__(department, progress_recorder)
@@ -95,16 +95,10 @@ class OKCCrawler(Crawler):
                 col = row.find_all("td")
                 if col:
                     if len(col) > 1:
-                        if int(col[0]['width']) > 300:
-                            strings.append("<div>{}</div>\n<div class=\"mb-3\">{}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif 100 < int(col[0]['width']) < 300:
-                            strings.append("<div class=\"mb-3\" style=\"padding-left: 0.50in\">{} {}</div>\n\n".format(
-                                col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif 60 < int(col[0]['width']) < 100:
+                        if int(col[0]['width']) == 36:
                             strings.append("<div class=\"mb-3\" style=\"padding-left: 0.25in\">{} {}</div>\n\n".format(
                                 col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
-                        elif int(col[0]['width']) < 60:
+                        elif int(col[0]['width']) == 42:
                             strings.append("<div class=\"mb-3\">{} {}</div>\n\n".format(
                                 col[0].text.strip(), col[1].text.strip().replace("\n", "").replace("\xa0", " ")))
                     else:

@@ -5,37 +5,42 @@ class NormanCrawler(Crawler):
 
     def __init__(self, department, progress_recorder):
         super().__init__(department, progress_recorder)
-        self.set_strainer("table", id="filebrowser-file-listing")
+        self.set_strainer("div", class_="views-row")
 
     def filter_agendas(self, parsed_html):
         filtered_agendas = []
-        # Limit search to 5 most-recent agendas
-        rows = parsed_html.tbody.find_all("tr", limit=5)
-        for agenda in rows:
-            # The first row is not an agenda, which can be confirmed by the absence
-            # of filesize text. Agenda.contents[2] is where the filesize is found.
-            if agenda.contents[2].text:
-                agenda_url = "http://www.normanok.gov{}".format(agenda.a["href"])
+        # Limit search to 4 upcoming meetings
+        meetings = parsed_html.find_all("article", limit=4)
+        for agenda in meetings:
+            # Check that agenda is posted
+            agenda_detail_url = "http://www.normanok.gov{}".format(agenda.a["href"])
+            agenda_pdf = self.get_agenda_pdf(agenda_detail_url)
+            if agenda_pdf:
                 # Make sure agenda isn't already in the database
-                if not self.agenda_exists(agenda_url):
-                    # Separate out date and title
-                    match = re.search(r'\d{1,4}-\d{1,2}-\d{1,2}', agenda.a.text)
-                    agenda_date = self.create_date(match.group(0))
-                    agenda_title = agenda.a.text[match.end():len(agenda.a.text)].strip()
-                    # Check to see if agenda title matches the department
-                    if re.search(self.name.lower().strip(), agenda_title.lower().strip()):
-                        # Make sure agenda isn't older than the cutoff date
-                        if not self.too_old(agenda_date):
-                            agenda_obj = {
-                                "agenda_date": agenda_date,
-                                "agenda_title": agenda_title,
-                                "agenda_url": agenda_url,
-                                "pdf_link": agenda_url
-                            }
-                            filtered_agendas.append(agenda_obj)
+                if not self.agenda_exists(agenda_pdf):
+                    # Create date and title
+                    agenda_date = self.create_date(agenda.a.find("p", class_="date").text.strip())
+                    agenda_title = agenda.a.h3.text.strip()
+                    # Add agenda to filtered list
+                    agenda_obj = {
+                        "agenda_date": agenda_date,
+                        "agenda_title": agenda_title,
+                        "agenda_url": agenda_pdf,
+                        "pdf_link": agenda_pdf
+                    }
+                    filtered_agendas.append(agenda_obj)
         return filtered_agendas
 
     def parse_agenda(self, agenda):
         # This function is not needed for this crawler
         # It simply returns the input
         return agenda
+
+    def get_agenda_pdf(self, agenda_detail_url):
+        response = self.request(agenda_detail_url)
+        self.set_strainer("div", class_="event-description")
+        soup = self.get_soup(response.text, "html.parser", parse_only=self.strainer)
+        if soup.a:
+            agenda_url = soup.a["href"]
+            return agenda_url
+        return None
