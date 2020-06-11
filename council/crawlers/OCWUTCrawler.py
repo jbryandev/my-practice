@@ -18,6 +18,7 @@ class OCWUTCrawler(Crawler):
             WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
             page_source = browser.page_source
             browser.quit()
+            print(page_source)
             return page_source
         except TimeoutException:
             print("Timed out waiting for page to load")
@@ -28,7 +29,6 @@ class OCWUTCrawler(Crawler):
         # Limit search to 50 most-recent agendas
         rows = parsed_html.find_all("tr", limit=50)
         for agenda in rows:
-            print("for loop start")
             # Split up agenda description into string components
             agenda_strings = agenda.text.strip().split("\n")
             # Store date and title to vars
@@ -36,10 +36,8 @@ class OCWUTCrawler(Crawler):
             agenda_title = agenda_strings[len(agenda_strings)-2].strip()
             # Check to see if agenda title matches the department
             if self.name.lower().strip() == agenda_title.lower().strip():
-                print("name match")
                 # Make sure agenda isn't older than the cutoff date
                 if not self.too_old(agenda_date):
-                    print("not too old")
                     # Get more agenda details
                     agenda_links = agenda.find_all("a")
                     agenda_view_url = "https://agenda.okc.gov/sirepub/{}".format(agenda_links[0]["href"])
@@ -48,7 +46,6 @@ class OCWUTCrawler(Crawler):
                     agenda_url = "https://agenda.okc.gov/sirepub/agview.aspx?agviewmeetid={}&agviewdoctype=AGENDA".format(meeting_id)
                     # Make sure agenda isn't already in the database
                     if not self.agenda_exists(agenda_url):
-                        print("agenda is new")
                         agenda_obj = {
                             "agenda_date": agenda_date,
                             "agenda_title": agenda_title,
