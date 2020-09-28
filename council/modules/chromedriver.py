@@ -14,6 +14,7 @@ def set_chrome_options():
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
     chrome_options.add_experimental_option("useAutomationExtension", False) # Avoids unpacked extensions error dialog box
     chrome_options.add_experimental_option("excludeSwitches", ['enable-logging']) # Silences devtools listening alert
 
