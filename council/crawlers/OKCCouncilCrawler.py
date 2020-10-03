@@ -31,22 +31,24 @@ class OKCCouncilCrawler(Crawler):
         for agenda in rows:
             # If row contains an agenda
             if agenda.a:
-                agenda_links = agenda.find_all("a")
-                agenda_id = re.search(r'\d{4}', agenda_links[0]["onclick"]).group(0)
-                file_id = re.search(r'\d{4}', agenda_links[1]["onclick"]).group(0)
-                agenda_url = "https://okc.primegov.com/Portal/Meeting?compiledMeetingDocumentFileId={}".format(agenda_id)
-                pdf_link_url = "https://okc.primegov.com/api/Meeting/getcompiledfiledownloadurl?compiledFileId={}".format(file_id)
-                # Make sure agenda isn't already in the database
-                if not self.agenda_exists(agenda_url):
-                    agenda_info = agenda.find_all("td")
-                    agenda_title = agenda_info[0].text.strip()
-                    agenda_date = self.create_date(agenda_info[1].text.strip())
-                    # Get PDF link
-                    browser = self.get_browser(pdf_link_url)
-                    soup = self.get_soup(browser.page_source, "html.parser")
-                    pdf_link = soup.text.strip()[1:-1]
-                    # Make sure agenda isn't older than the cutoff date
-                    if not self.too_old(agenda_date):
+                agenda_info = agenda.find_all("td")
+                agenda_title = agenda_info[0].text.strip()
+                agenda_date = self.create_date(agenda_info[1].text.strip())
+                # Check title matches department & agenda isn't too old
+                if self.name.lower().strip() == agenda_title.lower().strip() and \
+                    not self.too_old(agenda_date):
+                    agenda_links = agenda.find_all("a")
+                    agenda_id = re.search(r'\d{4}', agenda_links[0]["onclick"]).group(0)
+                    file_id = re.search(r'\d{4}', agenda_links[1]["onclick"]).group(0)
+                    agenda_url = "https://okc.primegov.com/Portal/Meeting?compiledMeetingDocumentFileId={}".format(agenda_id)
+                    pdf_link_url = "https://okc.primegov.com/api/Meeting/getcompiledfiledownloadurl?compiledFileId={}".format(file_id)
+                    # Make sure agenda isn't already in the database
+                    if not self.agenda_exists(agenda_url):
+                        # Get PDF link
+                        page_source = self.get_page_source(pdf_link_url)
+                        soup = self.get_soup(page_source, "html.parser")
+                        pdf_link = soup.text.strip()[1:-1]
+                        # Save to agenda object
                         agenda_obj = {
                                 "agenda_date": agenda_date,
                                 "agenda_title": agenda_title,
@@ -58,9 +60,8 @@ class OKCCouncilCrawler(Crawler):
 
     def parse_agenda(self, agenda):
         # Get contents of agenda
-        browser = self.get_browser(agenda.get("agenda_url"))
-        soup = self.get_soup(browser.page_source, "html.parser")
-        browser.quit()        
+        page_source = self.get_page_source(agenda.get("agenda_url"))
+        soup = self.get_soup(page_source, "html.parser")      
         agenda_text = self.get_agenda_text(soup)
         # Update agenda object with new info
         agenda.update({
