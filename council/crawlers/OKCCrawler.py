@@ -1,7 +1,7 @@
 import re, unicodedata
+from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from council.modules.Crawler import Crawler
 
@@ -14,12 +14,12 @@ class OKCCrawler(Crawler):
 
     def get_page_source(self, url):
         self.progress_recorder.update(1, 20, "Opening browser instance...")
-        browser = self.get_browser(url)
-        WebDriverWait(browser, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, " meeting-title bodyTextColour"))
+        driver = webdriver.PhantomJS()
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
         )
-        page_source = browser.page_source
-        browser.close()
+        page_source = driver.page_source
+        driver.close()
         return unicodedata.normalize("NFKD", page_source)
 
     def filter_agendas(self, parsed_html):
