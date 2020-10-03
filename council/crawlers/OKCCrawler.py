@@ -15,8 +15,8 @@ class OKCCrawler(Crawler):
     def get_page_source(self, url):
         self.progress_recorder.update(1, 20, "Opening browser instance...")
         browser = self.get_browser(url)
-        WebDriverWait(browser, 10).until_not(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "dataTables_empty"))
+        WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, " meeting-title bodyTextColour"))
         )
         page_source = browser.page_source
         browser.close()
