@@ -15,6 +15,7 @@ class OKCCrawler(Crawler):
     def get_page_source(self, url):
         #self.progress_recorder.update(1, 20, "Opening browser instance...")
         driver = webdriver.PhantomJS()
+        driver.set_window_size(1024, 768)
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
         )
