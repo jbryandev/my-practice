@@ -35,8 +35,7 @@ class OKCCrawler(Crawler):
                 agenda_title = agenda_info[0].text.strip()
                 agenda_date = self.create_date(agenda_info[1].text.strip())
                 # Check title matches department & agenda isn't too old
-                # self.name.lower().strip()
-                if "oklahoma city golf commission" == agenda_title.lower().strip() and \
+                if self.name.lower().strip() == agenda_title.lower().strip() and \
                     not self.too_old(agenda_date):
                     agenda_links = agenda.find_all("a")
                     agenda_id = re.search(r'\d{4}', agenda_links[0]["onclick"]).group(0)
