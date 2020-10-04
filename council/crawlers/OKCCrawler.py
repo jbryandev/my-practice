@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from council.modules.Crawler import Crawler
 
 # Crawler for new OKC City Council agenda portal
@@ -15,7 +16,10 @@ class OKCCrawler(Crawler):
     def get_page_source(self, url):
         #self.progress_recorder.update(1, 20, "Opening browser instance...")
         driver = webdriver.PhantomJS()
-        driver.set_window_size(1024, 768)
+        # driver.maximize_window()
+        # body=driver.find_element_by_tag_name('body')
+        # body.send_keys(Keys.CONTROL+'t')
+        driver.get(url)
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
         )
