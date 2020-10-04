@@ -14,11 +14,8 @@ class OKCCrawler(Crawler):
         self.set_strainer("table", id="upcomingMeetingsTable")
 
     def get_page_source(self, url):
-        #self.progress_recorder.update(1, 20, "Opening browser instance...")
+        self.progress_recorder.update(1, 20, "Opening browser instance...")
         driver = webdriver.PhantomJS()
-        # driver.maximize_window()
-        # body=driver.find_element_by_tag_name('body')
-        # body.send_keys(Keys.CONTROL+'t')
         driver.get(url)
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
@@ -64,7 +61,13 @@ class OKCCrawler(Crawler):
 
     def parse_agenda(self, agenda):
         # Get contents of agenda
-        page_source = self.get_page_source(agenda.get("agenda_url"))
+        driver = webdriver.PhantomJS()
+        driver.get(agenda.get("agenda_url"))
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@class='number-cell-section']"))
+        )
+        page_source = driver.page_source
+        driver.close()
         soup = self.get_soup(page_source, "html.parser")      
         agenda_text = self.get_agenda_text(soup)
         # Update agenda object with new info
