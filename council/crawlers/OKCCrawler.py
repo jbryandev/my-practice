@@ -13,9 +13,11 @@ class OKCCrawler(Crawler):
         self.set_strainer("table", id="upcomingMeetingsTable")
 
     def get_page_source(self, url):
-        self.progress_recorder.update(1, 20, "Opening browser instance...")
+        #self.progress_recorder.update(1, 20, "Opening browser instance...")
         driver = webdriver.PhantomJS()
-        driver.implicitly_wait(5)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
+        )
         page_source = driver.page_source
         driver.close()
         return unicodedata.normalize("NFKD", page_source)
