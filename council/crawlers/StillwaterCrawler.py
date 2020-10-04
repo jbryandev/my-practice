@@ -16,23 +16,25 @@ class StillwaterCrawler(Crawler):
                 agenda_date = self.create_date(row.h2.text)
                 agenda_title = self.get_title(row.text)
                 if not self.agenda_exists(agenda_url) and not self.too_old(agenda_date):
-                    agenda = {
-                        "agenda_date": agenda_date,
-                        "agenda_title": agenda_title,
-                        "agenda_url": agenda_url,
-                        "agenda_text": ""
-                    }
-                    filtered_agendas.append(agenda)
+                    # Check that agenda file is an actual pdf and not a placeholder
+                    response = self.request(agenda_url)
+                    self.set_strainer("iframe")
+                    soup = self.get_soup(response.text, "html.parser", parse_only=self.strainer)
+                    pdf_link = "http://stillwater.org{}".format(soup.iframe["src"])
+                    if pdf_link[-3:len(pdf_link)] == "pdf":
+                        agenda = {
+                            "agenda_date": agenda_date,
+                            "agenda_title": agenda_title,
+                            "agenda_url": agenda_url,
+                            "pdf_link": pdf_link,
+                            "agenda_text": ""
+                        }
+                        filtered_agendas.append(agenda)
         return filtered_agendas
 
     def parse_agenda(self, agenda):
-        response = self.request(agenda.get("agenda_url"))
-        self.set_strainer("iframe")
-        soup = self.get_soup(response.text, "html.parser", parse_only=self.strainer)
-        pdf_link = "http://stillwater.org{}".format(soup.iframe["src"])
-        agenda.update({
-            "pdf_link": pdf_link
-        })
+        # This function is not needed for this crawler
+        # It simply returns the input
         return agenda
 
     @staticmethod
