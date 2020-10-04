@@ -46,7 +46,10 @@ class OKCCrawler(Crawler):
                     # Make sure agenda isn't already in the database
                     if not self.agenda_exists(agenda_url):
                         # Get PDF link
-                        page_source = self.get_page_source(pdf_link_url)
+                        driver = webdriver.PhantomJS()
+                        driver.get(pdf_link_url)
+                        page_source = driver.page_source
+                        driver.close()
                         soup = self.get_soup(page_source, "html.parser")
                         pdf_link = soup.text.strip()[1:-1]
                         # Save to agenda object
