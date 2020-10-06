@@ -104,7 +104,7 @@
             $(document).ready(function(){
                 // Displays highlights if any exist
                 {% for highlight in agenda.highlights.all %}
-                $( "div.card-body div.mb-3:contains('{{ agenda.agenda_text|hl_slice:highlight }}')" ).css( "background-color", "#FFFF00" ).attr("id", "{{ highlight.id }}");
+                $( "div.card-body div.mb-3:contains('{{ agenda.agenda_text|hl_slice:highlight|safe }}')" ).css( "background-color", "#FFFF00" ).attr("id", "{{ highlight.id }}");
                 {% endfor %}
             });
         </script>

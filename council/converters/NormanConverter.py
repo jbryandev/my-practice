@@ -38,9 +38,9 @@ class NormanConverter(PDFConverter):
         return fixed_proj_codes
  
     def indent_text(self, trimmed_text):
-        if re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+", trimmed_text):
-            start = re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+", trimmed_text)
-            end = re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?\n", trimmed_text[start.end():])
+        if re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text):
+            start = re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text)
+            end = re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?|\n|\d{1,2}\s[A-Z]", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
                     trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
