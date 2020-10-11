@@ -40,7 +40,7 @@ class NormanConverter(PDFConverter):
     def indent_text(self, trimmed_text):
         if re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text):
             start = re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text)
-            end = re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?|\n|\d{1,2}\s[A-Z]", trimmed_text[start.end():])
+            end = re.search(r"\n[A-Z][a-z]+(-)*([a-zA-Z])*(\s[a-zA-Z]+)*\n|\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n\d{1,2}\s[A-Z]", trimmed_text[start.end():])
             if end:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
                     trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
@@ -57,7 +57,7 @@ class NormanConverter(PDFConverter):
             )
             self.indent_text(trimmed_text[start.end():].strip())
         else:
-            end = re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?\n", trimmed_text)
+            end = re.search(r"\n[A-Z][a-z]+(-)*([a-zA-Z])*(\s[a-zA-Z]+)*\n|\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n\d{1,2}\s[A-Z]", trimmed_text)
             if end:
                 self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
                     trimmed_text[:end.start()].strip().replace("\n", " ")
@@ -93,10 +93,10 @@ class NormanConverter(PDFConverter):
 
     def remove_actions(self, text):
         slice_ranges_list = []
-        action_text = re.finditer(r"ACTION NEEDED:", text)
+        action_text = re.finditer(r"ACTION NEEDED", text)
         for action in action_text:
-            end_of_action = re.search(r"ACTION TAKEN:\n", text[action.start():])
-            slice_ranges_list.append((action.start(), action.start()+end_of_action.end()-1))
+            end_of_action = re.search(r"ACTION TAKEN", text[action.start():])
+            slice_ranges_list.append((action.start(), action.start()+end_of_action.end()))
         new_string = "".join(text[idx] for idx in range(len(text))\
             if not any(front <= idx <= rear for front, rear in slice_ranges_list))
         return new_string
