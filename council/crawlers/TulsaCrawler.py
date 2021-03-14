@@ -1,6 +1,8 @@
-import re
-from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.common.exceptions import TimeoutException
+import re, unicodedata
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 from council.modules.Crawler import Crawler
 
 class TulsaCrawler(Crawler):
@@ -11,82 +13,11 @@ class TulsaCrawler(Crawler):
 
     def get_page_source(self, url):
         self.progress_recorder.update(1, 20, "Opening browser instance...")
-        browser = self.get_browser(url)
-        timeout = 30
-        try:
-            # Tulsa uses iframes
-            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("form"))
-            # browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))
-            # Have to search by current month and year, so populate those in the form
-            current_month = str(self.get_current_date().strftime("%B"))
-            current_year = str(self.get_current_date().year)
-            month_select = Select(browser.find_element_by_name("MeetingMonth"))
-            month_select.select_by_visible_text(current_month)
-            year_select = Select(browser.find_element_by_name("MeetingYear"))
-            year_select.select_by_visible_text(current_year)
-            # Submit search form
-            browser.find_element_by_name("Submit").click()
-            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name("table"))
-            # Get source of resulting search page
-            page_source = browser.page_source
-            return page_source
-        except TimeoutException:
-            print("ERROR: Timed out waiting for page to load")
-            raise
-        finally:
-            browser.quit()
-
-    def filter_agendas(self, parsed_html):
-        filtered_agendas = []
-        rows = parsed_html.find_all("td")
-        for agenda in rows:
-            if agenda.a:
-                agenda_url = "http://legacy.tulsacouncil.org/inc/search/{}".format(agenda.a["href"])
-                # Make sure agenda isn't already in the database
-                if not self.agenda_exists(agenda_url):
-                    match = re.search(r'\d{1,2}/\d{1,2}/\d{1,4}\s\d{1,2}:\d{2}\s(AM|PM)', agenda.text)
-                    agenda_date = self.create_date(match.group(0))
-                    # Make sure agenda isn't older than the cutoff date
-                    if not self.too_old(agenda_date):
-                        agenda_time = "(Workshop)" if agenda_date.strftime("%I:%M %p") == "04:00 PM" else ""
-                        agenda_title = "{} {}".format(agenda.a.text, agenda_time).strip()
-                        if self.name == "City Council":
-                            self.name = "Council" # City Council agendas are labeled only as "Council"
-                        # Check to see if agenda title matches the department
-                        if re.search(self.name.lower().strip(), agenda_title.lower().strip()):
-                            agenda_obj = {
-                                "agenda_url": agenda_url,
-                                "agenda_date": agenda_date,
-                                "agenda_title": agenda_title,
-                            }
-                            filtered_agendas.append(agenda_obj)
-        return filtered_agendas
-
-    def parse_agenda(self, agenda):
-        response = self.request(agenda.get("agenda_url"))
-        response.encoding = "utf-8"
-        soup = self.get_soup(response.text, "html.parser")
-        agenda_text = self.format_text(soup.text)
-        agenda.update({
-            "agenda_text": agenda_text,
-            "pdf_link": ""
-        })
-        return agenda
-
-    def format_text(self, text):
-        # Override in child classes
-        return text
-
-    def trim_text(self, text, start, end):
-        trimmed_text = ""
-        first_line = re.search(start, text)
-        last_line = re.search(end, text)
-        if first_line and last_line:
-            trimmed_text = text[first_line.start():last_line.end()]
-        elif first_line and not last_line:
-            trimmed_text = text[first_line.start():]
-        elif not first_line and last_line:
-            trimmed_text = text[:last_line.end()]
-        else:
-            trimmed_text = text
-        return trimmed_text
+        driver = webdriver.PhantomJS()
+        driver.get(url)
+        WebDriverWait(driver, 10).until(
+            EC.text_to_be_present_in_element((By.XPATH, "//*[@id='boardName']"), "{}".format(self.name))
+        )
+        page_source = driver.page_source
+        driver.close()
+        return unicodedata.normalize("NFKD", page_source)

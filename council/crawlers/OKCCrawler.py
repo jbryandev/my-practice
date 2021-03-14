@@ -10,18 +10,20 @@ class OKCCrawler(Crawler):
 
     def __init__(self, department, progress_recorder):
         super().__init__(department, progress_recorder)
-        self.set_strainer("table", id="upcomingMeetingsTable")
+        self.set_strainer("div", class_="content public_portal_search bodyBackgroundColour bodyTextFont")
 
     def get_page_source(self, url):
         self.progress_recorder.update(1, 20, "Opening browser instance...")
-        driver = webdriver.PhantomJS()
-        driver.get(url)
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@class=' meeting-title bodyTextColour']"))
-        )
-        page_source = driver.page_source
-        driver.close()
-        return unicodedata.normalize("NFKD", page_source)
+        browser = self.get_browser(url)
+        timeout = 10
+        try:
+            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
+            page_source = browser.page_source
+            browser.quit()
+            return page_source
+        except TimeoutException:
+            print("Timed out waiting for page to load")
+            browser.quit()
 
     def filter_agendas(self, parsed_html):
         filtered_agendas = []
@@ -34,20 +36,17 @@ class OKCCrawler(Crawler):
                 agenda_title = agenda_info[0].text.strip()
                 agenda_date = self.create_date(agenda_info[1].text.strip())
                 # Check title matches department & agenda isn't too old
-                if self.name.lower().strip() == agenda_title.lower().strip() and \
+                if re.search(self.name.lower().strip(), agenda_title.lower().strip()) and \
                     not self.too_old(agenda_date):
                     agenda_links = agenda.find_all("a")
-                    agenda_id = re.search(r'\d{4}', agenda_links[0]["onclick"]).group(0)
-                    file_id = re.search(r'\d{4}', agenda_links[1]["onclick"]).group(0)
+                    agenda_id = re.search(r'\d{5}', agenda_links[0]["href"]).group(0)
+                    file_id = re.search(r'\d{5}', agenda_links[1]["href"]).group(0)
                     agenda_url = "https://okc.primegov.com/Portal/Meeting?compiledMeetingDocumentFileId={}".format(agenda_id)
                     pdf_link_url = "https://okc.primegov.com/api/Meeting/getcompiledfiledownloadurl?compiledFileId={}".format(file_id)
                     # Make sure agenda isn't already in the database
                     if not self.agenda_exists(agenda_url):
                         # Get PDF link
-                        driver = webdriver.PhantomJS()
-                        driver.get(pdf_link_url)
-                        page_source = driver.page_source
-                        driver.close()
+                        page_source = self.get_page_source(pdf_link_url)
                         soup = self.get_soup(page_source, "html.parser")
                         pdf_link = soup.text.strip()[1:-1]
                         # Save to agenda object
@@ -62,13 +61,7 @@ class OKCCrawler(Crawler):
 
     def parse_agenda(self, agenda):
         # Get contents of agenda
-        driver = webdriver.PhantomJS()
-        driver.get(agenda.get("agenda_url"))
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//*[@class='number-cell-section']"))
-        )
-        page_source = driver.page_source
-        driver.close()
+        page_source = self.get_page_source(agenda.get("agenda_url"))
         soup = self.get_soup(page_source, "html.parser")      
         agenda_text = self.get_agenda_text(soup)
         # Update agenda object with new info
