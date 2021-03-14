@@ -1,8 +1,6 @@
-import re, unicodedata
-from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
+import re
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from council.modules.Crawler import Crawler
 
 # Crawler for new OKC City Council agenda portal
