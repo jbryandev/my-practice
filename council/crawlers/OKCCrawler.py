@@ -11,7 +11,7 @@ class OKCCrawler(Crawler):
         self.set_strainer("div", class_="content public_portal_search bodyBackgroundColour bodyTextFont")
 
     def get_page_source(self, url):
-        self.progress_recorder.update(1, 20, "Opening browser instance...")
+        #self.progress_recorder.update(1, 20, "Opening browser instance...")
         browser = self.get_browser(url)
         timeout = 10
         try:

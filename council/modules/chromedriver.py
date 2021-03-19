@@ -10,7 +10,7 @@ def set_chrome_options():
     This function sets the chrome options for the driver.
     """
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BINARY")
+    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_SHIM")
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
@@ -20,7 +20,7 @@ def set_chrome_options():
     chrome_options.add_argument("--ignore-certificate-errors")
     chrome_options.add_argument("--ignore-ssl-errors")
     chrome_options.add_argument("--allow-running-insecure-content")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36")
     chrome_options.add_experimental_option("useAutomationExtension", False) # Avoids unpacked extensions error dialog box
     chrome_options.add_experimental_option("excludeSwitches", ['enable-logging', 'enable-automation']) # Silences devtools listening alert
 
