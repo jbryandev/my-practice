@@ -10,7 +10,7 @@ def set_chrome_options():
     This function sets the chrome options for the driver.
     """
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.binary_location = os.environ.get("CHROME_PATH")
+    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--no-sandbox")
