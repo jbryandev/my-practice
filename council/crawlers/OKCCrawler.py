@@ -1,4 +1,5 @@
-import re
+import re, json
+from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from council.modules.Crawler import Crawler
@@ -8,58 +9,59 @@ class OKCCrawler(Crawler):
 
     def __init__(self, department, progress_recorder):
         super().__init__(department, progress_recorder)
-        self.set_strainer("div", class_="content public_portal_search bodyBackgroundColour bodyTextFont")
+        # self.set_strainer("div", class_="content public_portal_search bodyBackgroundColour bodyTextFont")
 
     def get_page_source(self, url):
-        browser = self.get_browser(url)
-        timeout = 10
-        try:
-            WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
-            page_source = browser.page_source
-            browser.quit()
-            return page_source
-        except TimeoutException:
-            print("Timed out waiting for page to load")
-            browser.quit()
+        # browser = webdriver.PhantomJS()
+        # browser.get(url)
+        # timeout = 10
+        # try:
+        #     WebDriverWait(browser, timeout).until(lambda x: x.find_element_by_tag_name('body'))
+        #     page_source = browser.page_source
+        #     browser.quit()
+        #     return page_source
+        # except TimeoutException:
+        #     print("Timed out waiting for page to load")
+        #     browser.quit()
 
-    def filter_agendas(self, parsed_html):
+        # Get JSON data directly
+        json_path = "https://okc.primegov.com/api/v2/PublicPortal/ListUpcomingMeetings?_=1616211972252"
+        request = self.request(json_path)
+        return request.text
+
+    def parse_html(self, page_source):
+        json_data = json.loads(page_source)
+        return json_data
+
+    def filter_agendas(self, json_data):
         filtered_agendas = []
-        # Limit search to 50 most-recent agendas
-        rows = parsed_html.find_all("tr", limit=50)
-        for agenda in rows:
-            # If row contains an agenda
-            if agenda.a:
-                agenda_info = agenda.find_all("td")
-                agenda_title = agenda_info[0].text.strip()
-                agenda_date = self.create_date(agenda_info[1].text.strip())
-                # Check title matches department & agenda isn't too old
-                if re.search(self.name.lower().strip(), agenda_title.lower().strip()) and \
-                    not self.too_old(agenda_date):
-                    agenda_links = agenda.find_all("a")
-                    agenda_id = re.search(r'\d{5}', agenda_links[0]["href"]).group(0)
-                    file_id = re.search(r'\d{5}', agenda_links[1]["href"]).group(0)
-                    agenda_url = "https://okc.primegov.com/Portal/Meeting?compiledMeetingDocumentFileId={}".format(agenda_id)
-                    pdf_link_url = "https://okc.primegov.com/api/Meeting/getcompiledfiledownloadurl?compiledFileId={}".format(file_id)
-                    # Make sure agenda isn't already in the database
-                    if not self.agenda_exists(agenda_url):
-                        # Get PDF link
-                        page_source = self.get_page_source(pdf_link_url)
-                        soup = self.get_soup(page_source, "html.parser")
-                        pdf_link = soup.text.strip()[1:-1]
-                        # Save to agenda object
-                        agenda_obj = {
-                                "agenda_date": agenda_date,
-                                "agenda_title": agenda_title,
-                                "agenda_url": agenda_url,
-                                "pdf_link": pdf_link
-                            }
-                        filtered_agendas.append(agenda_obj)
+        for agenda in json_data:
+            agenda_title = agenda.get("title")
+            agenda_date = self.create_date(agenda.get("date"))
+            # Check title matches department & agenda isn't too old
+            if re.search(self.name.lower().strip(), agenda_title.lower().strip()) and \
+                not self.too_old(agenda_date):
+                agenda_id = agenda.get("documentList")[0].get("id")
+                file_id = agenda.get("documentList")[1].get("id")
+                agenda_url = "https://okc.primegov.com/Portal/Meeting?compiledMeetingDocumentFileId={}".format(agenda_id)
+                pdf_link = "https://okc.primegov.com/Public/CompiledDocument/{}".format(file_id)
+                # pdf_link_url = "https://okc.primegov.com/api/Meeting/getcompiledfiledownloadurl?compiledFileId={}".format(file_id)
+                # Make sure agenda isn't already in the database
+                if not self.agenda_exists(agenda_url):
+                    # Save to agenda object
+                    agenda_obj = {
+                            "agenda_date": agenda_date,
+                            "agenda_title": agenda_title,
+                            "agenda_url": agenda_url,
+                            "pdf_link": pdf_link
+                        }
+                    filtered_agendas.append(agenda_obj)
         return filtered_agendas
 
     def parse_agenda(self, agenda):
         # Get contents of agenda
-        page_source = self.get_page_source(agenda.get("agenda_url"))
-        soup = self.get_soup(page_source, "html.parser")      
+        page_source = self.request(agenda.get("agenda_url"))
+        soup = self.get_soup(page_source.text, "html.parser")      
         agenda_text = self.get_agenda_text(soup)
         # Update agenda object with new info
         agenda.update({
