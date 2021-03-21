@@ -25,7 +25,7 @@ class OKCCrawler(Crawler):
         #     browser.quit()
 
         # Get JSON data directly
-        json_path = "https://okc.primegov.com/api/v2/PublicPortal/ListUpcomingMeetings?_=1616211972252"
+        json_path = "https://okc.primegov.com/api/v2/PublicPortal/ListUpcomingMeetings"
         request = self.request(json_path)
         return request.text
 
