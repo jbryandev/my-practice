@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'projects',
     'celery_progress',
     'django_extensions',
+    'sslserver',
 ]
 
 MIDDLEWARE = [

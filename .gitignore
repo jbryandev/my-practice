@@ -51,3 +51,6 @@ Thumbs.db
 ######################
 *.env
 *.windows
+
+# Certificates #
+*.pem
