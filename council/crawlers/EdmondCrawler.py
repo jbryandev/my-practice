@@ -41,6 +41,7 @@ class EdmondCrawler(Crawler):
     def get_agenda_text(soup):
         # Separate head and body in order to strip out non-essential info
         # at beginning of each Edmond agenda
+        head = soup.thead.find_all("tr")[-1]
         body = soup.tbody
         rows = body.find_all("tr")
         strings = []
@@ -62,7 +63,7 @@ class EdmondCrawler(Crawler):
         # Join the rows of body text together into one string, and then put the header and body
         # text together to create agenda_text
         agenda_text = "".join(strings)
-        return agenda_text
+        return head.text + agenda_text
 
     @staticmethod
     def get_pdf_link(soup):

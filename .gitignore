@@ -46,6 +46,7 @@ Thumbs.db
 # Python #
 ######################
 /env/*
+*.python-version
 
 # Heroku #
 ######################

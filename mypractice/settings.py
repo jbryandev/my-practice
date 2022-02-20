@@ -188,3 +188,6 @@ SHELL_PLUS = "ipython"
 # Fix for Python 3.8 asyncio connection reset errors
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# Fix for DEFAULT_AUTO_FIELD warning
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
