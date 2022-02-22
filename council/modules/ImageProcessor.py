@@ -9,13 +9,14 @@ class ImageProcessor:
 
     def process(self):
         converted = self.convert(self.image)
-        resized = self.resize(converted)
-        gray = self.get_grayscale(resized)
-        denoise = self.remove_noise(gray)
-        thresh = self.thresholding(denoise)
-        deskewed = self.deskew(thresh)
-        processed_img = Image.fromarray(deskewed)
-        return processed_img
+        return converted
+        # resized = self.resize(converted)
+        # gray = self.get_grayscale(resized)
+        # denoise = self.remove_noise(gray) # This step sometimes introduces artifacts in tesseract output
+        # thresh = self.thresholding(denoise)
+        # deskewed = self.deskew(thresh) # This step is causing tesseract to spit out gibberish
+        # processed_img = Image.fromarray(deskewed)
+        # return processed_img
 
     # convert image to opencv format
     def convert(self, image):

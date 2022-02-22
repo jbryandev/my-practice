@@ -12,7 +12,7 @@ class PDFConverter(ABC):
         self.agenda = agenda
         self.pdf_url = agenda.pdf_link
         self.progress_recorder = progress_recorder
-        self.ocr_config = r'--oem 3 --psm 6'
+        self.custom_oem_psm_config = r'--oem 3 --psm 4'
 
     def __repr__(self):
         return "{} - {} Agenda".format(self.__class__.__name__, str(self.agenda))
@@ -87,9 +87,8 @@ class PDFConverter(ABC):
         return processor.process()
 
     def extract_text(self, pdf_image):
-        # This method should be overriden by subclasses
-        ocr = OCRProcessor()
-        return ocr.process(pdf_image, config=self.ocr_config)
+        text = pytesseract.image_to_string(pdf_image, config=self.custom_oem_psm_config).strip()
+        return text
 
     def format_text(self, extracted_text):
         # This method should be overriden by subclasses

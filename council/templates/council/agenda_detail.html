@@ -109,7 +109,7 @@
             });
         </script>
         {% endif %}
-        {{ agenda.agenda_text|safe }}
+        {{ agenda.agenda_text|safe|linebreaks }}
     {% else %}
         {% if convert_task_id %}
             {% load static %}

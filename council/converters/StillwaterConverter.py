@@ -8,19 +8,7 @@ class StillwaterConverter(PDFConverter):
     def __init__(self, agenda, progress_recorder):
         super().__init__(agenda, progress_recorder)
         self.formatted_text = ""
-        self.ocr_config = r'--oem 3 --psm 4'
 
-    def extract_text(self, pdf_image):
-        ocr = OCRProcessor()
-        return ocr.process(pdf_image, config=self.ocr_config)
-        # hocr = ocr.process(pdf_image, config=self.ocr_config, mode='hocr')
-        # soup = BeautifulSoup(hocr, "html.parser")
-        # lines = soup.find_all("span", class_="ocr_line")
-        # pdf_text = ""
-        # for line in lines:
-        #     pdf_text += line.text.strip().replace("|", "").replace("\n", " ")
-        # return pdf_text
-    
     def format_text(self, extracted_text):
         clean_text = extracted_text.replace("\x0c", "\n").replace("|", "")
         trimmed_text = self.trim_text(clean_text)
