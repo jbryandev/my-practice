@@ -6,73 +6,40 @@ class NormanConverter(PDFConverter):
     def __init__(self, agenda, progress_recorder):
         super().__init__(agenda, progress_recorder)
         self.formatted_text = ""
+        self.custom_oem_psm_config = r'--oem 3 --psm 6'
+        self.numbered_item_regex = r"\d{1,2}\.\sCONSIDERATION"
 
     def format_text(self, pdf_text):
-        trimmed_text = self.trim_text(pdf_text, "1 Roll Call", "Adjournment")
-        corrected_text = self.fix_ocr(trimmed_text)
-        remove_attachments = self.remove_attachments(corrected_text)
-        remove_actions = self.remove_actions(remove_attachments)
-        self.indent_text(remove_actions)
+        trimmed_text = self.trim_text(pdf_text, "Call to Order", "Adjournment")
+        self.formatted_text = trimmed_text
+        self.indent_text(self.formatted_text)
         return self.formatted_text
 
     def trim_text(self, pdf_text, start, end):
         trimmed_text = ""
-        first_line = re.search(start, pdf_text)
-        last_line = re.search(end, pdf_text)
+        first_line = re.search(start, pdf_text, re.IGNORECASE)
+        last_line = re.search(end, pdf_text, re.IGNORECASE)
         if first_line and last_line:
             trimmed_text = pdf_text[first_line.start():last_line.end()]
         elif first_line and not last_line:
             trimmed_text = pdf_text[first_line.start():]
         elif not first_line and last_line:
             trimmed_text = pdf_text[:last_line.end()]
-        elif re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n(\d{1,2}\s)?([A-Z]|\d)+-\d{4}-\d+", pdf_text):
-            match = re.search(r"\n\d{1,2}\s[A-Z][a-z]+|\n(\d{1,2}\s)?([A-Z]|\d)+-\d{4}-\d+", pdf_text)
-            trimmed_text = pdf_text[match.start():]
         else:
             trimmed_text = pdf_text
         return trimmed_text
-
-    def fix_ocr(self, trimmed_text):
-        fixed_text = trimmed_text.replace("\x0c", "")
-        fixed_proj_codes = re.sub(r"(?P<start>\d{1,2}\s([A-Z]|\d)+)\s(?P<end>\d{4}-\d+)", r"\g<start>-\g<end>", fixed_text)
-        return fixed_proj_codes
  
     def indent_text(self, trimmed_text):
-        if re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text):
-            start = re.match(r"\d{1,2}\s[A-Z][a-z]+|\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\d{1,2}\s[A-Z]", trimmed_text)
-            end = re.search(r"\n[A-Z][a-z]+(-)*([a-zA-Z])*(\s[a-zA-Z]+)*\n|\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n\d{1,2}\s[A-Z]", trimmed_text[start.end():])
-            if end:
-                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():end.start()+start.end()].strip().replace("\n", " ")
-                )
-                self.indent_text(trimmed_text[end.start()+start.end():].strip())
-            else:
-                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[start.start():].strip().replace("\n", " ")
-                )
-        elif re.match(r"[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?\n", trimmed_text):
-            start = re.match(r"[A-Z][a-z]+((\s|/)[A-Z][a-z]+)?\n", trimmed_text)
-            self.formatted_text += "<div class=\"mb-3\" style=\"text-decoration: underline\">{}</div>\n\n".format(
-                trimmed_text[start.start():start.end()].strip().replace("\n", " ")
-            )
-            self.indent_text(trimmed_text[start.end():].strip())
-        else:
-            end = re.search(r"\n[A-Z][a-z]+(-)*([a-zA-Z])*(\s[a-zA-Z]+)*\n|\n\d{1,2}\s[A-Z][a-z]+|\n\d{1,2}\s([A-Z]|\d)+-\d{4}-\d+|\n\d{1,2}\s[A-Z]", trimmed_text)
-            if end:
-                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text[:end.start()].strip().replace("\n", " ")
-                )
-                self.indent_text(trimmed_text[end.start():].strip())
-            else:
-                self.formatted_text += "<div class=\"mb-3\">{}</div>\n\n".format(
-                    trimmed_text.strip().replace("\n", "<br>")
-                )
+        numbered_items = re.finditer(self.numbered_item_regex, trimmed_text)
+        for item in numbered_items:
+            trimmed_text = trimmed_text[:item.start()] + "<div class=\"mb-3\">" + trimmed_text[item.start():]
+
 
     @staticmethod
     def crop_image(pdf_image):
         orig_width = pdf_image.size[0]
         orig_height = pdf_image.size[1]
-        crop_boundaries = (0, 170, orig_width, orig_height - 170)
+        crop_boundaries = (0, 0, orig_width, orig_height - 170)
         return pdf_image.crop(crop_boundaries)
 
     def remove_attachments(self, text):
