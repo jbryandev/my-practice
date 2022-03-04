@@ -1,4 +1,5 @@
 from council.modules.Crawler import Crawler
+import re
 
 class EdmondCrawler(Crawler):
 
@@ -41,8 +42,11 @@ class EdmondCrawler(Crawler):
     def get_agenda_text(soup):
         # Separate head and body in order to strip out non-essential info
         # at beginning of each Edmond agenda
-        head = soup.thead.find_all("tr")[-1]
-        body = soup.tbody
+        start = soup.find("td", string=re.compile("Call to Order"))
+        if start:
+            body = start.parent.parent
+        else:
+            body = soup.tbody
         rows = body.find_all("tr")
         strings = []
         # Edmond uses a table to display body of agenda. BS4 has trouble extracting tables.
@@ -63,7 +67,7 @@ class EdmondCrawler(Crawler):
         # Join the rows of body text together into one string, and then put the header and body
         # text together to create agenda_text
         agenda_text = "".join(strings)
-        return head.text + agenda_text
+        return agenda_text
 
     @staticmethod
     def get_pdf_link(soup):
